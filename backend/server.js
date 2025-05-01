@@ -11,14 +11,12 @@ app.use(cors({
     methods: ['GET', 'POST', 'PUT', 'DELETE'], // Métodos permitidos
     credentials: true, // Si necesitas enviar cookies o autenticación
     }));
-
 app.use(express.json());
 
 // Conectar a MongoDB Atlas
 mongoose.connect('mongodb+srv://juliban27:WJSciYIQJLQGssen@diningthrough.x8uqu1i.mongodb.net/data_base', { useNewUrlParser: true, useUnifiedTopology: true })
     .then(() => console.log('Conectado a MongoDB Atlas'))
     .catch(err => console.error('Error al conectar a MongoDB:', err));
-
 
 const User = mongoose.model('User', {
     id: String,
@@ -58,7 +56,7 @@ const Bill = mongoose.model('Bill', {
     total: Number,
 });
 
-const Restaurant = mongoose.model('Bill', {
+const Restaurant = mongoose.model('Restaurant', {
     restaurant_id: String,
     name: String,
     location: String,
@@ -262,7 +260,59 @@ app.delete('/bills/:id', async (req, res) => {
     }
 });
 
+//////Restaurants///////
+app.get('/restaurants', async (req, res) => {
+    try {
+        const restaurants = await Restaurant.find();
+        res.json(restaurants);
+    } catch (error) {
+        res.status(500).json({ error: 'Error al obtener los restaurantes' });
+    }
+});
 
+// Ruta para agregar un nuevo restaurante
+app.post('/restaurants', async (req, res) => {
+    try {
+        const restaurant = new Restaurant(req.body);  // Asumimos que los datos se envían en req.body
+        await restaurant.save();
+        res.status(201).json(restaurant);
+    } catch (error) {
+        res.status(500).json({ error: 'Error al guardar el restaurante' });
+    }
+});
+
+// Ruta para obtener un restaurante por su ID
+app.get('/restaurants/:id', async (req, res) => {
+    try {
+        const restaurant = await Restaurant.findById(req.params.id);
+        if (!restaurant) return res.status(404).json({ error: 'Restaurante no encontrado' });
+        res.json(restaurant);
+    } catch (error) {
+        res.status(500).json({ error: 'Error al obtener el restaurante' });
+    }
+});
+
+// Ruta para actualizar un restaurante
+app.put('/restaurants/:id', async (req, res) => {
+    try {
+        const restaurant = await Restaurant.findByIdAndUpdate(req.params.id, req.body, { new: true });
+        if (!restaurant) return res.status(404).json({ error: 'Restaurante no encontrado' });
+        res.json(restaurant);
+    } catch (error) {
+        res.status(500).json({ error: 'Error al actualizar el restaurante' });
+    }
+});
+
+// Ruta para eliminar un restaurante
+app.delete('/restaurants/:id', async (req, res) => {
+    try {
+        const restaurant = await Restaurant.findByIdAndDelete(req.params.id);
+        if (!restaurant) return res.status(404).json({ error: 'Restaurante no encontrado' });
+        res.json({ message: 'Restaurante eliminado' });
+    } catch (error) {
+        res.status(500).json({ error: 'Error al eliminar el restaurante' });
+    }
+});
 
 // Iniciar el servidor en el puerto 5000
 app.listen(5000, () => {
