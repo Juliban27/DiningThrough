@@ -1,7 +1,8 @@
 import express from 'express';
 import mongoose from 'mongoose';
 import cors from 'cors';
-
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
 
 const app = express();
 
@@ -317,4 +318,93 @@ app.delete('/restaurants/:id', async (req, res) => {
 // Iniciar el servidor en el puerto 5000
 app.listen(5000, () => {
     console.log('Servidor backend corriendo en http://localhost:5000');
+});
+
+
+
+//Singup
+app.post('/register', async (req, res) => {
+    try {
+        const { email, password, role, name } = req.body;
+
+        // Verificar si el usuario ya existe
+        const existingUser = await User.findOne({ email });
+        if (existingUser) {
+            return res.status(400).json({ error: 'El correo electrónico ya está registrado' });
+        }
+
+        // Cifrar la contraseña
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        // Crear un nuevo usuario
+        const user = new User({
+            email,
+            password: hashedPassword,
+            role,
+            name
+        });
+
+        await user.save();
+        res.status(201).json({ message: 'Usuario registrado correctamente' });
+    } catch (error) {
+        res.status(500).json({ error: 'Error al registrar el usuario' });
+    }
+});
+
+//Login
+app.post('/login', async (req, res) => {
+    try {
+        const { email, password } = req.body;
+
+        // Buscar el usuario
+        const user = await User.findOne({ email });
+        if (!user) {
+            return res.status(400).json({ error: 'Usuario no encontrado' });
+        }
+
+        // Comparar la contraseña
+        const isMatch = await bcrypt.compare(password, user.password);
+        if (!isMatch) {
+            return res.status(400).json({ error: 'Contraseña incorrecta' });
+        }
+
+        // Crear un JWT
+        const token = jwt.sign({ id: user._id, role: user.role }, 'secreto', { expiresIn: '1h' });
+
+        res.json({ token });
+    } catch (error) {
+        res.status(500).json({ error: 'Error al iniciar sesión' });
+    }
+});
+
+
+// Middleware para verificar el JWT
+const verifyToken = (req, res, next) => {
+    const token = req.headers['authorization']?.split(' ')[1]; // Obtenemos el token del encabezado
+
+    if (!token) {
+        return res.status(403).json({ error: 'No se proporciona token' });
+    }
+
+    try {
+        const decoded = jwt.verify(token, 'secreto');
+        req.user = decoded; // Guardamos la información del usuario decodificada
+        next(); // Continuar con la siguiente función
+    } catch (error) {
+        res.status(401).json({ error: 'Token inválido o expirado' });
+    }
+};
+
+const verifyRole = (role) => {
+    return (req, res, next) => {
+        if (req.user.role !== role) {
+            return res.status(403).json({ error: 'No tienes permisos suficientes' });
+        }
+        next();
+    };
+};
+
+// Ruta solo accesible para el rol de 'admin'
+app.get('/admin', verifyToken, verifyRole('admin'), (req, res) => {
+    res.json({ message: 'Bienvenido, admin' });
 });
