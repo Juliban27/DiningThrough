@@ -3,10 +3,10 @@ import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import { AuthProvider } from '../context/AuthProvider';
 import AdminRoute from '../context/AdminRoute';
 import Login from './Login';
+import RestaurantRegister from './RestaurantRegister';
 import Index from './Index';
 import Signup from './SignUp';
 import Inventory from './Inventory';
-
 
 function App() {
   return (
@@ -24,6 +24,7 @@ function App() {
               </AdminRoute>
             }
           />
+          <Route path="/RestaurantRegister" element={<RestaurantRegister/>} />
         </Routes>
       </Router>
     </AuthProvider>
