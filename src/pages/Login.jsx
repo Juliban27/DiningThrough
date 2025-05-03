@@ -29,7 +29,7 @@ const Login = () => {
             
             // Navigate based on user role
             if (user.role === 'admin') {
-                navigate('/inventary');
+                navigate('/inventory');
             } else {
                 navigate('/index');
             }
