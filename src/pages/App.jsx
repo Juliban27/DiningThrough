@@ -8,7 +8,6 @@ import Index from './Index';
 import Signup from './SignUp';
 import Inventory from './Inventory';
 
-
 function App() {
   return (
     <AuthProvider>
@@ -25,13 +24,10 @@ function App() {
               </AdminRoute>
             }
           />
-           <Route path="/RestaurantRegister" element={<RestaurantRegister/>} />
+          <Route path="/RestaurantRegister" element={<RestaurantRegister/>} />
         </Routes>
       </Router>
     </AuthProvider>
-
-      </Routes>
-    </Router>
   );
 }
 
