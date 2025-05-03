@@ -279,14 +279,14 @@ app.get('/restaurants', async (req, res) => {
 app.post('/restaurants', async (req, res) => {
     console.log('📥 Payload recibido en /restaurants:', req.body);
     try {
-      const restaurant = await Restaurant.create(req.body);
-      console.log('✅ Restaurante creado:', restaurant);
-      return res.status(201).json(restaurant);
+        const restaurant = await Restaurant.create(req.body);
+        console.log('✅ Restaurante creado:', restaurant);
+        return res.status(201).json(restaurant);
     } catch (error) {
-      console.error('💥 Error al guardar restaurante:', error);
-      return res.status(500).json({ error: error.message });
+        console.error('💥 Error al guardar restaurante:', error);
+        return res.status(500).json({ error: error.message });
     }
-  });
+});
 
 // Ruta para obtener un restaurante por su ID
 app.get('/restaurants/:id', async (req, res) => {
@@ -324,64 +324,64 @@ app.delete('/restaurants/:id', async (req, res) => {
 // Ruta para obtener el horario de un restaurante
 app.get('/restaurants/:id/horario', async (req, res) => {
     try {
-      const { hora_apertura, hora_cierre } = await Restaurant.findById(
-        req.params.id,
-        'hora_apertura hora_cierre'          // solo esos campos
-      );
-      if (!hora_apertura) return res.status(404).json({ error: 'Restaurante no encontrado' });
-      res.json({ hora_apertura, hora_cierre });
+        const { hora_apertura, hora_cierre } = await Restaurant.findById(
+            req.params.id,
+            'hora_apertura hora_cierre'          // solo esos campos
+        );
+        if (!hora_apertura) return res.status(404).json({ error: 'Restaurante no encontrado' });
+        res.json({ hora_apertura, hora_cierre });
     } catch (error) {
-      res.status(500).json({ error: 'Error al obtener el horario' });
+        res.status(500).json({ error: 'Error al obtener el horario' });
     }
-  });
+});
 
-  // Actualizar la hora de apertura y/o cierre
+// Actualizar la hora de apertura y/o cierre
 app.patch('/restaurants/:id/horario', async (req, res) => {
     try {
-      const { hora_apertura, hora_cierre } = req.body;
-  
-      const updates = {};
-      if (hora_apertura) updates.hora_apertura = hora_apertura;
-      if (hora_cierre)   updates.hora_cierre   = hora_cierre;
-  
-      const restaurant = await Restaurant.findByIdAndUpdate(
-        req.params.id,
-        { $set: updates },
-        { new: true, runValidators: true }
-      );
-  
-      if (!restaurant) return res.status(404).json({ error: 'Restaurante no encontrado' });
-      res.json({
-        mensaje: 'Horario actualizado',
-        hora_apertura: restaurant.hora_apertura,
-        hora_cierre: restaurant.hora_cierre
-      });
+        const { hora_apertura, hora_cierre } = req.body;
+
+        const updates = {};
+        if (hora_apertura) updates.hora_apertura = hora_apertura;
+        if (hora_cierre) updates.hora_cierre = hora_cierre;
+
+        const restaurant = await Restaurant.findByIdAndUpdate(
+            req.params.id,
+            { $set: updates },
+            { new: true, runValidators: true }
+        );
+
+        if (!restaurant) return res.status(404).json({ error: 'Restaurante no encontrado' });
+        res.json({
+            mensaje: 'Horario actualizado',
+            hora_apertura: restaurant.hora_apertura,
+            hora_cierre: restaurant.hora_cierre
+        });
     } catch (error) {
-      res.status(500).json({ error: 'Error al actualizar el horario' });
+        res.status(500).json({ error: 'Error al actualizar el horario' });
     }
-  });
+});
 
 // Ruta para obtener la imagen de un restaurante
-  app.get('/restaurants/:id/imagen', async (req, res) => {
+app.get('/restaurants/:id/imagen', async (req, res) => {
     try {
-      const { image } = await Restaurant.findById(req.params.id, 'image').lean();
-      if (!image) return res.status(404).json({ error: 'Restaurante no encontrado' });
-      res.json({ image });
+        const { image } = await Restaurant.findById(req.params.id, 'image').lean();
+        if (!image) return res.status(404).json({ error: 'Restaurante no encontrado' });
+        res.json({ image });
     } catch (err) {
-      res.status(500).json({ error: 'Error al obtener la imagen' });
+        res.status(500).json({ error: 'Error al obtener la imagen' });
     }
-  });
+});
 
-  // Ruta para obtener el nombre de un restaurante
-  app.get('/restaurants/:id/nombre', async (req, res) => {
+// Ruta para obtener el nombre de un restaurante
+app.get('/restaurants/:id/nombre', async (req, res) => {
     try {
-      const doc = await Restaurant.findById(req.params.id, 'name').lean();
-      if (!doc) return res.status(404).json({ error: 'Restaurante no encontrado' });
-      res.json({ name: doc.name });
+        const doc = await Restaurant.findById(req.params.id, 'name').lean();
+        if (!doc) return res.status(404).json({ error: 'Restaurante no encontrado' });
+        res.json({ name: doc.name });
     } catch (err) {
-      res.status(500).json({ error: 'Error al obtener el nombre' });
+        res.status(500).json({ error: 'Error al obtener el nombre' });
     }
-  });
+});
 
 // Iniciar el servidor en el puerto 5000
 app.listen(5000, () => {
@@ -439,7 +439,16 @@ app.post('/login', async (req, res) => {
         // Crear un JWT
         const token = jwt.sign({ id: user._id, role: user.role }, 'secreto', { expiresIn: '1h' });
 
-        res.json({ token });
+        res.json({
+            token,
+            user: {
+                id: user._id,
+                email: user.email,
+                name: user.name,
+                role: user.role
+            }
+        });
+
     } catch (error) {
         res.status(500).json({ error: 'Error al iniciar sesión' });
     }
@@ -478,7 +487,7 @@ const verifyRole = (role) => {
 app.use('/admin', verifyToken, verifyRole('admin'));
 
 app.get('/admin', (req, res) => {
-    res.json({ message:'Bienvenido, admin' });
+    res.json({ message: 'Bienvenido, admin' });
 });
 
 app.get(

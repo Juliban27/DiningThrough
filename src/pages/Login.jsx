@@ -1,10 +1,8 @@
-import React, { useState } from 'react'
+import React, { useState } from 'react';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
 import Button from '../components/Button';
 import { Link, useNavigate } from 'react-router-dom';
-
-
 
 const Login = () => {
     const [email, setEmail] = useState('');
@@ -19,27 +17,33 @@ const Login = () => {
         setLoading(true);
         setError('');
         try {
-            const { data } = await axios.post('http://localhost:5000/login', { email, password });
-            // data: { token, user: { id, name, role, ... } }
-            login(data);                      // <-- guarda token y user en localStorage + context
-            // ahora redirige según rol
-            if (data.user.role === 'admin') {
-                navigate('/inventary');
+            // Store the response in the correct variable
+            const response = await axios.post('http://localhost:5000/login', { email, password });
+            const { token, user } = response.data;
+            
+            // Log the data for debugging
+            console.log('Login successful:', { token, user });
+            
+            // Call the login function from context
+            login({ token, user });
+            
+            // Navigate based on user role
+            if (user.role === 'admin') {
+                navigate('/inventory');
             } else {
                 navigate('/index');
             }
         } catch (err) {
+            console.error('Login error:', err);
             setError(err.response?.data?.error || 'Error al iniciar sesión');
         } finally {
             setLoading(false);
         }
     };
 
-
-
     return (
-        <div className=' font-cabinet-regular'>
-            <div className='bg-[#E0EDFF]  h-[50vw] rounded-b-4xl absolute inset-0 flex items-center justify-center'>
+        <div className='font-cabinet-regular'>
+            <div className='bg-[#E0EDFF] h-[50vw] rounded-b-4xl absolute inset-0 flex items-center justify-center'>
                 <div>
                     <h3 className='text-xl'>Unisabana</h3>
                     <h1 className='text-5xl text-[#001C63]'>Dining Through</h1>
@@ -47,21 +51,25 @@ const Login = () => {
                 </div>
             </div>
 
-            <div className='text-black relative z-10 flex flex-col items-center h-screen justify-center pt-30 '>
+            <div className='text-black relative z-10 flex flex-col items-center h-screen justify-center pt-30'>
                 <form onSubmit={handleLogin} className='flex flex-col justify-center'>
-                    <input type="email"
+                    <input 
+                        type="email"
                         value={email}
-                        onChange={(e) => setEmail(e.target.value)} required
+                        onChange={(e) => setEmail(e.target.value)} 
+                        required
                         className='border-2 border-gray-300 rounded-md p-2 mb-4'
                         placeholder='Correo electronico'
                     />
-                    <input type="password"
+                    <input 
+                        type="password"
                         value={password}
-                        onChange={(e) => setPassword(e.target.value)} required
+                        onChange={(e) => setPassword(e.target.value)} 
+                        required
                         className='border-2 border-gray-300 rounded-md p-2 mb-4'
                         placeholder='Contraseña'
                     />
-                    <Link to="/signup" className='  font-light text-xs -mt-4'>No tienes una cuenta?</Link>
+                    <Link to="/signup" className='font-light text-xs -mt-4'>No tienes una cuenta?</Link>
                     {error && <p className='text-red-500'>{error}</p>}
                 </form>
                 {loading && (
@@ -79,10 +87,9 @@ const Login = () => {
                     className={"mt-5"}
                     disabled={loading}
                 />
-
             </div>
         </div>
-    )
-}
+    );
+};
 
-export default Login
+export default Login;
