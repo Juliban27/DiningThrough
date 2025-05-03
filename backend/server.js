@@ -3,6 +3,8 @@ import mongoose from 'mongoose';
 import cors from 'cors';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import dotenv from 'dotenv';
+dotenv.config();
 
 const app = express();
 
@@ -11,7 +13,7 @@ app.use(cors({
     origin: 'http://localhost:5173', // Permite solo este origen, puedes agregar más si es necesario
     methods: ['GET', 'POST', 'PUT', 'DELETE'], // Métodos permitidos
     credentials: true, // Si necesitas enviar cookies o autenticación
-    }));
+}));
 app.use(express.json());
 
 // Conectar a MongoDB Atlas
@@ -77,7 +79,7 @@ app.get('/users', async (req, res) => {
     try {
         const users = await User.find();
         res.json(users);
-    }catch (error) {
+    } catch (error) {
         res.status(500).json({ error: 'Error al obtener los usuarios' });
     }
 });
@@ -444,6 +446,7 @@ app.post('/login', async (req, res) => {
 });
 
 
+
 // Middleware para verificar el JWT
 const verifyToken = (req, res, next) => {
     const token = req.headers['authorization']?.split(' ')[1]; // Obtenemos el token del encabezado
@@ -461,6 +464,8 @@ const verifyToken = (req, res, next) => {
     }
 };
 
+
+
 const verifyRole = (role) => {
     return (req, res, next) => {
         if (req.user.role !== role) {
@@ -470,7 +475,22 @@ const verifyRole = (role) => {
     };
 };
 
-// Ruta solo accesible para el rol de 'admin'
-app.get('/admin', verifyToken, verifyRole('admin'), (req, res) => {
-    res.json({ message: 'Bienvenido, admin' });
+app.use('/admin', verifyToken, verifyRole('admin'));
+
+app.get('/admin', (req, res) => {
+    res.json({ message:'Bienvenido, admin' });
 });
+
+app.get(
+    '/inventary',
+    verifyToken,            // 1) ¿Trae JWT válido?
+    verifyRole('admin'),    // 2) ¿Es admin?
+    async (req, res) => {
+        try {
+            const items = await Inventory.find();
+            res.json(items);
+        } catch (err) {
+            res.status(500).json({ error: 'Error al obtener inventario' });
+        }
+    }
+);
