@@ -6,44 +6,58 @@ import { AuthContext } from './AuthContext';
 export function AuthProvider({ children }) {
     const [user, setUser] = useState(null);
     const [token, setToken] = useState(null);
+    const [loading, setLoading] = useState(true);
 
+    // Se ejecuta al iniciar la aplicación para cargar datos del localStorage
     useEffect(() => {
-        // Add a safe check before parsing JSON
-        const storedUserStr = localStorage.getItem('myAppUser');
-        const storedToken = localStorage.getItem('myAppToken');
-        
-        if (storedUserStr && storedToken) {
-            try {
-                const storedUser = JSON.parse(storedUserStr);
-                setUser(storedUser);
-                setToken(storedToken);
-                axios.defaults.headers.common['Authorization'] = `Bearer ${storedToken}`;
-            } catch (error) {
-                // If there's an issue parsing the JSON, clear the invalid storage
-                console.error('Error parsing stored user data:', error);
-                localStorage.removeItem('myAppUser');
-                localStorage.removeItem('myAppToken');
+        const initAuth = () => {
+            const storedUserStr = localStorage.getItem('myAppUser');
+            const storedToken = localStorage.getItem('myAppToken');
+            
+            if (storedUserStr && storedToken) {
+                try {
+                    const storedUser = JSON.parse(storedUserStr);
+                    setUser(storedUser);
+                    setToken(storedToken);
+                    
+                    // Configurar el token en axios para todas las solicitudes futuras
+                    axios.defaults.headers.common['Authorization'] = `Bearer ${storedToken}`;
+                    
+                    console.log('🔑 Sesión restaurada:', { user: storedUser });
+                } catch (error) {
+                    console.error('Error al parsear datos de usuario:', error);
+                    localStorage.removeItem('myAppUser');
+                    localStorage.removeItem('myAppToken');
+                }
             }
-        }
+            setLoading(false);
+        };
+
+        initAuth();
     }, []);
 
     const login = ({ token, user }) => {
-        console.log('AuthProvider.login 👉', { token, user });
+        console.log('🔐 Login exitoso:', { token, user });
         
-        // Ensure we have valid data before storing
         if (!token || !user) {
-            console.error('Invalid login data', { token, user });
+            console.error('Datos de login inválidos', { token, user });
             return;
         }
         
+        // Guardar en localStorage
         localStorage.setItem('myAppToken', token);
         localStorage.setItem('myAppUser', JSON.stringify(user));
+        
+        // Actualizar estado
         setToken(token);
         setUser(user);
+        
+        // Configurar axios
         axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
     };
 
     const logout = () => {
+        console.log('🚪 Cerrando sesión');
         localStorage.removeItem('myAppToken');
         localStorage.removeItem('myAppUser');
         delete axios.defaults.headers.common['Authorization'];
@@ -51,8 +65,20 @@ export function AuthProvider({ children }) {
         setUser(null);
     };
 
+    // Verificar si el token sigue siendo válido
+    const isAuthenticated = () => {
+        return !!user && !!token;
+    };
+
     return (
-        <AuthContext.Provider value={{ user, token, login, logout }}>
+        <AuthContext.Provider value={{ 
+            user, 
+            token, 
+            login, 
+            logout, 
+            isAuthenticated,
+            loading 
+        }}>
             {children}
         </AuthContext.Provider>
     );
