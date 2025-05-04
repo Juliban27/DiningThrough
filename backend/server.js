@@ -1,7 +1,10 @@
 import express from 'express';
 import mongoose from 'mongoose';
 import cors from 'cors';
-
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
+import dotenv from 'dotenv';
+dotenv.config();
 
 const app = express();
 
@@ -10,7 +13,7 @@ app.use(cors({
     origin: 'http://localhost:5173', // Permite solo este origen, puedes agregar más si es necesario
     methods: ['GET', 'POST', 'PUT', 'DELETE'], // Métodos permitidos
     credentials: true, // Si necesitas enviar cookies o autenticación
-    }));
+}));
 app.use(express.json());
 
 // Conectar a MongoDB Atlas
@@ -60,6 +63,8 @@ const Restaurant = mongoose.model('Restaurant', {
     restaurant_id: String,
     name: String,
     location: String,
+    hora_apertura: String,
+    hora_cierre: String,
     image: String,
 })
 
@@ -74,7 +79,7 @@ app.get('/users', async (req, res) => {
     try {
         const users = await User.find();
         res.json(users);
-    }catch (error) {
+    } catch (error) {
         res.status(500).json({ error: 'Error al obtener los usuarios' });
     }
 });
@@ -272,12 +277,14 @@ app.get('/restaurants', async (req, res) => {
 
 // Ruta para agregar un nuevo restaurante
 app.post('/restaurants', async (req, res) => {
+    console.log('📥 Payload recibido en /restaurants:', req.body);
     try {
-        const restaurant = new Restaurant(req.body);  // Asumimos que los datos se envían en req.body
-        await restaurant.save();
-        res.status(201).json(restaurant);
+        const restaurant = await Restaurant.create(req.body);
+        console.log('✅ Restaurante creado:', restaurant);
+        return res.status(201).json(restaurant);
     } catch (error) {
-        res.status(500).json({ error: 'Error al guardar el restaurante' });
+        console.error('💥 Error al guardar restaurante:', error);
+        return res.status(500).json({ error: error.message });
     }
 });
 
@@ -314,7 +321,185 @@ app.delete('/restaurants/:id', async (req, res) => {
     }
 });
 
+// Ruta para obtener el horario de un restaurante
+app.get('/restaurants/:id/horario', async (req, res) => {
+    try {
+        const { hora_apertura, hora_cierre } = await Restaurant.findById(
+            req.params.id,
+            'hora_apertura hora_cierre'          // solo esos campos
+        );
+        if (!hora_apertura) return res.status(404).json({ error: 'Restaurante no encontrado' });
+        res.json({ hora_apertura, hora_cierre });
+    } catch (error) {
+        res.status(500).json({ error: 'Error al obtener el horario' });
+    }
+});
+
+// Actualizar la hora de apertura y/o cierre
+app.patch('/restaurants/:id/horario', async (req, res) => {
+    try {
+        const { hora_apertura, hora_cierre } = req.body;
+
+        const updates = {};
+        if (hora_apertura) updates.hora_apertura = hora_apertura;
+        if (hora_cierre) updates.hora_cierre = hora_cierre;
+
+        const restaurant = await Restaurant.findByIdAndUpdate(
+            req.params.id,
+            { $set: updates },
+            { new: true, runValidators: true }
+        );
+
+        if (!restaurant) return res.status(404).json({ error: 'Restaurante no encontrado' });
+        res.json({
+            mensaje: 'Horario actualizado',
+            hora_apertura: restaurant.hora_apertura,
+            hora_cierre: restaurant.hora_cierre
+        });
+    } catch (error) {
+        res.status(500).json({ error: 'Error al actualizar el horario' });
+    }
+});
+
+// Ruta para obtener la imagen de un restaurante
+app.get('/restaurants/:id/imagen', async (req, res) => {
+    try {
+        const { image } = await Restaurant.findById(req.params.id, 'image').lean();
+        if (!image) return res.status(404).json({ error: 'Restaurante no encontrado' });
+        res.json({ image });
+    } catch (err) {
+        res.status(500).json({ error: 'Error al obtener la imagen' });
+    }
+});
+
+// Ruta para obtener el nombre de un restaurante
+app.get('/restaurants/:id/nombre', async (req, res) => {
+    try {
+        const doc = await Restaurant.findById(req.params.id, 'name').lean();
+        if (!doc) return res.status(404).json({ error: 'Restaurante no encontrado' });
+        res.json({ name: doc.name });
+    } catch (err) {
+        res.status(500).json({ error: 'Error al obtener el nombre' });
+    }
+});
+
 // Iniciar el servidor en el puerto 5000
 app.listen(5000, () => {
     console.log('Servidor backend corriendo en http://localhost:5000');
 });
+
+
+
+//Singup
+app.post('/register', async (req, res) => {
+    try {
+        const { email, password, role, name } = req.body;
+
+        // Verificar si el usuario ya existe
+        const existingUser = await User.findOne({ email });
+        if (existingUser) {
+            return res.status(400).json({ error: 'El correo electrónico ya está registrado' });
+        }
+
+        // Cifrar la contraseña
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        // Crear un nuevo usuario
+        const user = new User({
+            email,
+            password: hashedPassword,
+            role,
+            name
+        });
+
+        await user.save();
+        res.status(201).json({ message: 'Usuario registrado correctamente' });
+    } catch (error) {
+        res.status(500).json({ error: 'Error al registrar el usuario' });
+    }
+});
+
+//Login
+app.post('/login', async (req, res) => {
+    try {
+        const { email, password } = req.body;
+
+        // Buscar el usuario
+        const user = await User.findOne({ email });
+        if (!user) {
+            return res.status(400).json({ error: 'Usuario no encontrado' });
+        }
+
+        // Comparar la contraseña
+        const isMatch = await bcrypt.compare(password, user.password);
+        if (!isMatch) {
+            return res.status(400).json({ error: 'Contraseña incorrecta' });
+        }
+
+        // Crear un JWT
+        const token = jwt.sign({ id: user._id, role: user.role }, 'secreto', { expiresIn: '1h' });
+
+        res.json({
+            token,
+            user: {
+                id: user._id,
+                email: user.email,
+                name: user.name,
+                role: user.role
+            }
+        });
+
+    } catch (error) {
+        res.status(500).json({ error: 'Error al iniciar sesión' });
+    }
+});
+
+
+
+// Middleware para verificar el JWT
+const verifyToken = (req, res, next) => {
+    const token = req.headers['authorization']?.split(' ')[1]; // Obtenemos el token del encabezado
+
+    if (!token) {
+        return res.status(403).json({ error: 'No se proporciona token' });
+    }
+
+    try {
+        const decoded = jwt.verify(token, 'secreto');
+        req.user = decoded; // Guardamos la información del usuario decodificada
+        next(); // Continuar con la siguiente función
+    } catch (error) {
+        res.status(401).json({ error: 'Token inválido o expirado' });
+    }
+};
+
+
+
+const verifyRole = (role) => {
+    return (req, res, next) => {
+        if (req.user.role !== role) {
+            return res.status(403).json({ error: 'No tienes permisos suficientes' });
+        }
+        next();
+    };
+};
+
+app.use('/admin', verifyToken, verifyRole('admin'));
+
+app.get('/admin', (req, res) => {
+    res.json({ message: 'Bienvenido, admin' });
+});
+
+app.get(
+    '/inventary',
+    verifyToken,            // 1) ¿Trae JWT válido?
+    verifyRole('admin'),    // 2) ¿Es admin?
+    async (req, res) => {
+        try {
+            const items = await Inventory.find();
+            res.json(items);
+        } catch (err) {
+            res.status(500).json({ error: 'Error al obtener inventario' });
+        }
+    }
+);
