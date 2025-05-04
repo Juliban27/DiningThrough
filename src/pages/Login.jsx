@@ -16,23 +16,21 @@ const Login = () => {
         e.preventDefault();
         setLoading(true);
         setError('');
+
         try {
-            // Store the response in the correct variable
-            const response = await axios.post('http://localhost:5000/login', { email, password });
+            // normalizo aquí
+            const payload = {
+                email: email.trim().toLowerCase(),
+                password
+            };
+
+            const response = await axios.post('http://localhost:5000/login', payload);
             const { token, user } = response.data;
-            
-            // Log the data for debugging
             console.log('Login successful:', { token, user });
-            
-            // Call the login function from context
             login({ token, user });
-            
-            // Navigate based on user role
-            if (user.role === 'admin') {
-                navigate('/inventory');
-            } else {
-                navigate('/index');
-            }
+
+            if (user.role === 'admin') navigate('/inventory');
+            else navigate('/index');
         } catch (err) {
             console.error('Login error:', err);
             setError(err.response?.data?.error || 'Error al iniciar sesión');
