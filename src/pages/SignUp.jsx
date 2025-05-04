@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import Button from '../components/Button';
 import axios from 'axios';
-import { Link} from 'react-router-dom';
+import { Link } from 'react-router-dom';
 
 const Register = () => {
     const [email, setEmail] = useState('');
@@ -14,18 +14,26 @@ const Register = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setLoading(true);
         try {
-            // Hacer la solicitud al backend para registrar el usuario
-            const response = await axios.post('http://localhost:5000/register', { email, password, name, role });
+            const payload = {
+                name: name.trim().toLowerCase(),
+                email: email.trim().toLowerCase(),
+                password,
+                role,
+            };
+            const response = await axios.post('http://localhost:5000/register', payload);
 
-            // Si la creación fue exitosa, mostrar un mensaje
             setSuccess(response.data.message);
             setError('');
         } catch (err) {
             setError(err.response?.data?.error || 'Error al registrar el usuario');
             setSuccess('');
+        } finally {
+            setLoading(false);
         }
     };
+
 
     return (
         <div className="font-cabinet-regular">
