@@ -18,7 +18,6 @@ const Login = () => {
         setError('');
 
         try {
-            // normalizo aquí
             const payload = {
                 email: email.trim().toLowerCase(),
                 password
