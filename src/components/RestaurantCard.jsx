@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';      // quita si no usas Router
 
-const API = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+const API = import.meta.env.VITE_API_URL;
 
 export const RestaurantCard = ({ id, name, hora_apertura, hora_cierre }) => {
   const navigate = useNavigate();
