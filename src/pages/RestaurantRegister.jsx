@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import Button from '../components/Button';
 import axios from 'axios';
+const API = import.meta.env.VITE_API_URL;
 
 export default function RestaurantForm() {
   const [restaurantId, setRestaurantId] = useState('');
@@ -29,7 +30,7 @@ export default function RestaurantForm() {
       };
 
       const response = await axios.post(
-        'http://localhost:5000/restaurants',
+        `${API}/restaurants`,
         payload
       );
 

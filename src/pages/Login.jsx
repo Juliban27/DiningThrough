@@ -3,6 +3,7 @@ import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
 import Button from '../components/Button';
 import { Link, useNavigate } from 'react-router-dom';
+const API = import.meta.env.VITE_API_URL;
 
 const Login = () => {
     const [email, setEmail] = useState('');
@@ -18,13 +19,12 @@ const Login = () => {
         setError('');
 
         try {
-            // normalizo aquí
             const payload = {
                 email: email.trim().toLowerCase(),
                 password
             };
 
-            const response = await axios.post('http://localhost:5000/login', payload);
+            const response = await axios.post(`${API}/login`, payload);
             const { token, user } = response.data;
             console.log('Login successful:', { token, user });
             login({ token, user });
