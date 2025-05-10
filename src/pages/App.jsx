@@ -7,6 +7,7 @@ import Signup from './SignUp';
 import Inventory from './Inventory';
 import Index from './Index';
 import NoPermiso from './NoPermiso';
+import PublicOnlyRoute from '../context/PublicOnlyRoute';
 
 // Componente de carga mientras verificamos la autenticación
 const LoadingScreen = () => (
@@ -42,8 +43,24 @@ function AppRoutes() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/login" element={<Login />} />
-        <Route path="/signup" element={<Signup />} />
+        {/* Rutas públicas - Solo accesibles si NO estás autenticado */}
+        <Route 
+          path="/login" 
+          element={
+            <PublicOnlyRoute>
+              <Login />
+            </PublicOnlyRoute>
+          } 
+        />
+        <Route 
+          path="/signup" 
+          element={
+            <PublicOnlyRoute>
+              <Signup />
+            </PublicOnlyRoute>
+          } 
+        />
+        
         <Route path="/no-permiso" element={<NoPermiso />} />
         
         {/* Rutas protegidas */}
@@ -72,7 +89,6 @@ function AppRoutes() {
   );
 }
 
-// Envuelve toda la aplicación con el proveedor de autenticación
 function App() {
   return (
     <AuthProvider>
@@ -82,4 +98,3 @@ function App() {
 }
 
 export default App;
-
