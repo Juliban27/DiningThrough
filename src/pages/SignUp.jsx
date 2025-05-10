@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import Button from '../components/Button';
 import axios from 'axios';
 import { Link } from 'react-router-dom';
+const API = import.meta.env.VITE_API_URL;
+
 
 const Register = () => {
     const [email, setEmail] = useState('');
@@ -22,7 +24,7 @@ const Register = () => {
                 password,
                 role,
             };
-            const response = await axios.post('http://localhost:5000/register', payload);
+            const response = await axios.post(`${API}/register`, payload);
 
             setSuccess(response.data.message);
             setError('');
