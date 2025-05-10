@@ -8,7 +8,8 @@ import Inventory from './Inventory';
 import Index from './Index';
 import NoPermiso from './NoPermiso';
 import PublicOnlyRoute from '../context/PublicOnlyRoute';
-
+import ProductForm from './ProductForm';
+import RestaurantProducts from './RestaurantProducts';
 // Componente de carga mientras verificamos la autenticación
 const LoadingScreen = () => (
   <div className="flex items-center justify-center h-screen">
@@ -81,11 +82,20 @@ function AppRoutes() {
             </ProtectedRoute>
           } 
         />
+
+        <Route 
+          path="/restaurants/:id" 
+          element={
+            <ProtectedRoute>
+              <RestaurantProducts/>
+            </ProtectedRoute>
+          } 
+        />
         
-        {/* Ruta por defecto */}
-        <Route path="*" element={<Navigate to="/login" replace />} />
+        <Route  path='/productform'  element={<ProductForm/>} />
+        <Route path="*" element={<Navigate to="/index" replace />} />
       </Routes>
-    </BrowserRouter>
+    </BrowserRouter> 
   );
 }
 
