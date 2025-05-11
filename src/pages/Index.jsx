@@ -1,17 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import Magnifier from '../assets/Magnifier';
 import ProfileButton from '../components/ProfileButton';
-import { RestaurantCard } from '../components/RestaurantCard';   // ajusta la ruta si difiere
+import { RestaurantCard } from '../components/RestaurantCard'; 
 
-// 👇 Usa variable de entorno o fallback al localhost
-const API = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+const API = import.meta.env.VITE_API_URL;
 
 const Index = () => {
     const [restaurants, setRestaurants] = useState([]);
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState('');
 
-    // ─── Traer lista al montar ───
     useEffect(() => {
         (async () => {
             try {
@@ -72,7 +70,9 @@ const Index = () => {
                         {filtered.map(r => (
                             <RestaurantCard
                                 key={r._id}
-                                id={r._id}
+                                id={r.restaurant_id || r._id} // Usamos restaurant_id si existe, sino el _id
+                                _id={r._id}
+                                restaurant_id={r.restaurant_id}
                                 name={r.name}
                                 hora_apertura={r.hora_apertura}
                                 hora_cierre={r.hora_cierre}
@@ -86,4 +86,3 @@ const Index = () => {
 };
 
 export default Index;
-

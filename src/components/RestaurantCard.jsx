@@ -1,11 +1,18 @@
 import React, { useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';      // quita si no usas Router
-
+import { useNavigate } from 'react-router-dom';
+import Button from "./Button";
 const API = import.meta.env.VITE_API_URL;
 
-export const RestaurantCard = ({ id, name, hora_apertura, hora_cierre }) => {
+export const RestaurantCard = ({ id, _id, restaurant_id, name, hora_apertura, hora_cierre }) => {
   const navigate = useNavigate();
   const [imgError, setImgError] = React.useState(false);
+
+
+    const handleLocationClick = (e) => {
+    e.stopPropagation();      // ❌ evita que se dispare handleClick del padre
+    navigate(`/map`);
+    
+  };
 
   // Determina si está abierto ahora
   const isOpenNow = useMemo(() => {
@@ -22,12 +29,21 @@ export const RestaurantCard = ({ id, name, hora_apertura, hora_cierre }) => {
     return minutesNow >= minutesOpen || minutesNow < minutesClose;
   }, [hora_apertura, hora_cierre]);
 
-  const imageSrc = `${API}/restaurants/${id}/imagen`;
+  // Usar _id para la imagen (generado por la BD) pero restaurant_id para la navegación
+  const imageSrc = `${API}/restaurants/${_id}/imagen`;
+  
+  // ID para navegar (preferimos restaurant_id personalizado)
+  const navigationId = restaurant_id || id;
+
+  // Manejador de clic para navegar a la página de productos del restaurante
+  const handleClick = () => {
+    navigate(`/restaurants/${navigationId}`);
+  };
 
   return (
     <button
       type="button"
-      onClick={() => navigate(`/restaurants/${id}`)}
+      onClick={handleClick}
       className="w-full flex items-center gap-3 p-4 rounded-lg bg-white shadow-md active:scale-[0.97] transition"
     >
       {/* Imagen o fallback */}
@@ -57,6 +73,15 @@ export const RestaurantCard = ({ id, name, hora_apertura, hora_cierre }) => {
         >
           {isOpenNow ? 'Abierto ahora' : 'Cerrado ahora'}
         </span>
+          
+      </div>
+      <div>
+          <Button
+              text={"Ubicación"}
+              onClick={handleLocationClick}
+              className={"text-xs "}
+              
+          />
       </div>
     </button>
   );

@@ -7,7 +7,10 @@ import Signup from './SignUp';
 import Inventory from './Inventory';
 import Index from './Index';
 import NoPermiso from './NoPermiso';
-
+import PublicOnlyRoute from '../context/PublicOnlyRoute';
+import ProductForm from './ProductForm';
+import RestaurantProducts from './RestaurantProducts';
+import Map from './Map';
 // Componente de carga mientras verificamos la autenticación
 const LoadingScreen = () => (
   <div className="flex items-center justify-center h-screen">
@@ -42,8 +45,24 @@ function AppRoutes() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/login" element={<Login />} />
-        <Route path="/signup" element={<Signup />} />
+        {/* Rutas públicas - Solo accesibles si NO estás autenticado */}
+        <Route 
+          path="/login" 
+          element={
+            <PublicOnlyRoute>
+              <Login />
+            </PublicOnlyRoute>
+          } 
+        />
+        <Route 
+          path="/signup" 
+          element={
+            <PublicOnlyRoute>
+              <Signup />
+            </PublicOnlyRoute>
+          } 
+        />
+        
         <Route path="/no-permiso" element={<NoPermiso />} />
         
         {/* Rutas protegidas */}
@@ -64,15 +83,32 @@ function AppRoutes() {
             </ProtectedRoute>
           } 
         />
+
+        <Route 
+          path="/restaurants/:id" 
+          element={
+            <ProtectedRoute>
+              <RestaurantProducts/>
+            </ProtectedRoute>
+          } 
+        />
+
+        <Route 
+          path="/map" 
+          element={
+            <ProtectedRoute>
+              <Map />
+            </ProtectedRoute>
+          } 
+        />
         
-        {/* Ruta por defecto */}
-        <Route path="*" element={<Navigate to="/login" replace />} />
+        <Route  path='/productform'  element={<ProductForm/>} />
+        <Route path="*" element={<Navigate to="/index" replace />} />
       </Routes>
-    </BrowserRouter>
+    </BrowserRouter> 
   );
 }
 
-// Envuelve toda la aplicación con el proveedor de autenticación
 function App() {
   return (
     <AuthProvider>
@@ -82,4 +118,3 @@ function App() {
 }
 
 export default App;
-
