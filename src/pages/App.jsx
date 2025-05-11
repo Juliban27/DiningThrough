@@ -10,6 +10,7 @@ import NoPermiso from './NoPermiso';
 import PublicOnlyRoute from '../context/PublicOnlyRoute';
 import ProductForm from './ProductForm';
 import RestaurantProducts from './RestaurantProducts';
+import Map from './Map';
 // Componente de carga mientras verificamos la autenticación
 const LoadingScreen = () => (
   <div className="flex items-center justify-center h-screen">
@@ -88,6 +89,15 @@ function AppRoutes() {
           element={
             <ProtectedRoute>
               <RestaurantProducts/>
+            </ProtectedRoute>
+          } 
+        />
+
+        <Route 
+          path="/map" 
+          element={
+            <ProtectedRoute>
+              <Map />
             </ProtectedRoute>
           } 
         />

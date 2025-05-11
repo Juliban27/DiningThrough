@@ -1,11 +1,18 @@
 import React, { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-
+import Button from "./Button";
 const API = import.meta.env.VITE_API_URL;
 
 export const RestaurantCard = ({ id, _id, restaurant_id, name, hora_apertura, hora_cierre }) => {
   const navigate = useNavigate();
   const [imgError, setImgError] = React.useState(false);
+
+
+    const handleLocationClick = (e) => {
+    e.stopPropagation();      // ❌ evita que se dispare handleClick del padre
+    navigate(`/map`);
+    
+  };
 
   // Determina si está abierto ahora
   const isOpenNow = useMemo(() => {
@@ -66,6 +73,15 @@ export const RestaurantCard = ({ id, _id, restaurant_id, name, hora_apertura, ho
         >
           {isOpenNow ? 'Abierto ahora' : 'Cerrado ahora'}
         </span>
+          
+      </div>
+      <div>
+          <Button
+              text={"Ubicación"}
+              onClick={handleLocationClick}
+              className={"text-xs "}
+              
+          />
       </div>
     </button>
   );
