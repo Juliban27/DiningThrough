@@ -3,14 +3,14 @@ import { useNavigate } from 'react-router-dom';
 import Button from "./Button";
 const API = import.meta.env.VITE_API_URL;
 
-export const RestaurantCard = ({ id, _id, restaurant_id, name, hora_apertura, hora_cierre }) => {
+export const RestaurantCard = ({ id, _id, restaurant_id, name, hora_apertura, hora_cierre, latitude, longitude }) => {
   const navigate = useNavigate();
   const [imgError, setImgError] = React.useState(false);
 
 
     const handleLocationClick = (e) => {
     e.stopPropagation();      // ❌ evita que se dispare handleClick del padre
-    navigate(`/map`);
+    navigate(`/map?lat=${latitude}&lng=${longitude}`);
     
   };
 

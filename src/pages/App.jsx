@@ -56,14 +56,14 @@ function AppRoutes() {
         <Route path="/no-permiso" element={<NoPermiso />} />
 
         {/* Admin */}
-        <Route
+        {/* <Route
           path="/inventory"
           element={
             <ProtectedRoute requireAdmin>
               <Inventory />
             </ProtectedRoute>
           }
-        />
+        /> */}
 
         {/* Página principal */}
         <Route
