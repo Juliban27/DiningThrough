@@ -7,72 +7,122 @@ import Signup from './SignUp';
 import Inventory from './Inventory';
 import Index from './Index';
 import NoPermiso from './NoPermiso';
+import PublicOnlyRoute from '../context/PublicOnlyRoute';
+import ProductForm from './ProductForm';
+import RestaurantProducts from './RestaurantProducts';
+import Map from './Map';
+import BillDetails from '../components/BillDetails';
 
-// Componente de carga mientras verificamos la autenticación
+/* ─── Pantalla de carga ─── */
 const LoadingScreen = () => (
   <div className="flex items-center justify-center h-screen">
-    <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-blue-600"></div>
+    <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-blue-600" />
   </div>
 );
 
-// Protege rutas que requieren autenticación
+/* ─── Rutas protegidas ─── */
 function ProtectedRoute({ children, requireAdmin = false }) {
   const { user, loading, isAuthenticated } = useAuth();
-  
-  if (loading) {
-    return <LoadingScreen />;
-  }
-  
-  if (!isAuthenticated()) {
-    // No autenticado -> redirigir a login
-    return <Navigate to="/login" replace />;
-  }
-  
-  if (requireAdmin && user.role !== 'admin') {
-    // No es admin pero la ruta lo requiere
+  if (loading) return <LoadingScreen />;
+  if (!isAuthenticated()) return <Navigate to="/login" replace />;
+  if (requireAdmin && user.role !== 'admin')
     return <Navigate to="/no-permiso" replace />;
-  }
-  
-  // Todo correcto, muestra el contenido
   return children;
 }
 
-// Componente principal que no usa contexto de autenticación
+/* ─── Rutas principales ─── */
 function AppRoutes() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/login" element={<Login />} />
-        <Route path="/signup" element={<Signup />} />
-        <Route path="/no-permiso" element={<NoPermiso />} />
-        
-        {/* Rutas protegidas */}
-        <Route 
-          path="/inventory" 
+        {/* Rutas públicas (solo si NO estás autenticado) */}
+        <Route
+          path="/login"
           element={
-            <ProtectedRoute requireAdmin={true}>
+            <PublicOnlyRoute>
+              <Login />
+            </PublicOnlyRoute>
+          }
+        />
+        <Route
+          path="/signup"
+          element={
+            <PublicOnlyRoute>
+              <Signup />
+            </PublicOnlyRoute>
+          }
+        />
+
+        <Route path="/no-permiso" element={<NoPermiso />} />
+
+        {/* Admin */}
+        {/* <Route
+          path="/inventory"
+          element={
+            <ProtectedRoute requireAdmin>
               <Inventory />
             </ProtectedRoute>
-          } 
-        />
-        
-        <Route 
-          path="/index" 
+          }
+        /> */}
+
+        {/* Página principal */}
+        <Route
+          path="/"
           element={
             <ProtectedRoute>
               <Index />
             </ProtectedRoute>
-          } 
+          }
         />
-        
-        {/* Ruta por defecto */}
-        <Route path="*" element={<Navigate to="/login" replace />} />
+        <Route
+          path="/index"
+          element={
+            <ProtectedRoute>
+              <Index />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Productos de un restaurante */}
+        <Route
+          path="/restaurants/:id"
+          element={
+            <ProtectedRoute>
+              <RestaurantProducts />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Mapa */}
+        <Route
+          path="/map"
+          element={
+            <ProtectedRoute>
+              <Map />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Inventario: formulario de producto sin protección */}
+        <Route path="/productform" element={<ProductForm />} />
+
+        {/* NUEVO — Detalle de factura */}
+        <Route
+          path="/bills/:id"
+          element={
+            <ProtectedRoute>
+              <BillDetails />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Wildcard → home */}
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
   );
 }
 
-// Envuelve toda la aplicación con el proveedor de autenticación
 function App() {
   return (
     <AuthProvider>

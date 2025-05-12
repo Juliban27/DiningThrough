@@ -29,7 +29,7 @@ const Login = () => {
             console.log('Login successful:', { token, user });
             login({ token, user });
 
-            if (user.role === 'admin') navigate('/inventory');
+            if (user.role === 'admin') navigate('/index');
             else navigate('/index');
         } catch (err) {
             console.error('Login error:', err);
