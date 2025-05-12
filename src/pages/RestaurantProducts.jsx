@@ -7,8 +7,8 @@ import ProfileButton from '../components/ProfileButton';
 import Button from '../components/Button';
 import BillCard from '../components/BillCard';
 import InventaryCard from '../components/InventaryCard';
-import { useAuth } from '../context/AuthContext'; 
-import Cross from '../assets/Cross';  // ← NUEVO
+import Cross from '../assets/Cross';
+import { useAuth } from '../context/AuthContext';
 
 const API = import.meta.env.VITE_API_URL;
 
@@ -16,11 +16,11 @@ const RestaurantProducts = () => {
   const { id } = useParams();
   const navigate = useNavigate();
 
-  /* ─────────── usuario & rol admin ─────────── */
-  const { user } = useAuth();                         // ← usuario vivo
+  /* ─── usuario & rol admin ─── */
+  const { user } = useAuth();
   const isAdmin = (user?.role || '').toLowerCase() === 'admin';
 
-  /* ─────────── state general ─────────── */
+  /* ─── state general ─── */
   const [restaurant, setRestaurant] = useState(null);
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -29,19 +29,17 @@ const RestaurantProducts = () => {
   const [categories, setCategories] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState('');
 
-  /* ─────────── carrito ─────────── */
+  /* ─── carrito ─── */
   const [cartItems, setCartItems] = useState([]);
 
-  /* ─────────── pedidos (bills) ─────────── */
+  /* ─── pedidos ─── */
   const [bills, setBills] = useState([]);
   const [loadingBills, setLoadingBills] = useState(false);
 
-  /* pestaña activa: 'productos' | 'carrito' | 'pedidos' | 'inventario' */
+  /* pestaña activa */
   const [tab, setTab] = useState('productos');
 
-  /* ──────────────────────────────────────────────
-   *  Cargar datos del restaurante y productos
-   * ────────────────────────────────────────────── */
+  /* ─── cargar restaurante + productos ─── */
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -63,64 +61,48 @@ const RestaurantProducts = () => {
     if (id) fetchData();
   }, [id]);
 
-  /* ─────────── cargar bills cuando se abre la pestaña pedidos ─────────── */
+  /* ─── cargar bills cuando abre “Pedidos” ─── */
   useEffect(() => {
     if (tab !== 'pedidos') return;
-
     (async () => {
       try {
         setLoadingBills(true);
         const res = await fetch(`${API}/bills`);
         const data = await res.json();
-        const mine = data.filter(b => b.client_id === user.id); // ← user.id sigue igual
+        const mine = data.filter(b => b.client_id === user.id);
         setBills(mine);
-      } catch (e) {
-        console.error(e);
       } finally {
         setLoadingBills(false);
       }
     })();
   }, [tab, user.id]);
 
-  /* ─────────────────────────── helpers ─────────────────────────── */
-  const handleAddToCart = product => {
-    setCartItems(prev => {
-      const found = prev.find(i => i._id === product._id);
-      return found
-        ? prev.map(i =>
-            i._id === product._id ? { ...i, quantity: i.quantity + 1 } : i,
-          )
-        : [...prev, { ...product, quantity: 1 }];
-    });
-  };
-
-  const increment = id =>
+  /* ─── helpers carrito ─── */
+  const handleAddToCart = prod => {
     setCartItems(prev =>
-      prev.map(i => (i._id === id ? { ...i, quantity: i.quantity + 1 } : i)),
+      prev.some(i => i._id === prod._id)
+        ? prev.map(i =>
+            i._id === prod._id ? { ...i, quantity: i.quantity + 1 } : i,
+          )
+        : [...prev, { ...prod, quantity: 1 }],
     );
-
+  };
+  const increment = id =>
+    setCartItems(prev => prev.map(i => (i._id === id ? { ...i, quantity: i.quantity + 1 } : i)));
   const decrement = id =>
     setCartItems(prev =>
       prev
-        .map(i =>
-          i._id === id ? { ...i, quantity: Math.max(1, i.quantity - 1) } : i,
-        )
+        .map(i => (i._id === id ? { ...i, quantity: Math.max(1, i.quantity - 1) } : i))
         .filter(i => i.quantity > 0),
     );
-
-  const removeFromCart = id =>
-    setCartItems(prev => prev.filter(i => i._id !== id));
-
-  const cartTotal = cartItems.reduce(
-    (acc, i) => acc + i.price * i.quantity,
-    0,
-  );
+  const removeFromCart = id => setCartItems(prev => prev.filter(i => i._id !== id));
+  const cartTotal = cartItems.reduce((acc, i) => acc + i.price * i.quantity, 0);
 
   const handleCheckout = async () => {
     if (!cartItems.length) return;
     try {
       const payload = {
-        client_id: user.id,      // TODO ajusta si tu campo es _id
+        client_id: user.id,
         products: cartItems,
         total: cartTotal,
         date: new Date(),
@@ -138,7 +120,7 @@ const RestaurantProducts = () => {
     }
   };
 
-  /* ─────────────────────────── UI ─────────────────────────── */
+  /* ─── loading / error ─── */
   if (loading) {
     return (
       <div className="bg-[#E0EDFF] min-h-screen flex items-center justify-center">
@@ -146,7 +128,6 @@ const RestaurantProducts = () => {
       </div>
     );
   }
-
   if (error || !restaurant) {
     return (
       <div className="bg-[#E0EDFF] min-h-screen flex items-center justify-center p-4">
@@ -158,24 +139,13 @@ const RestaurantProducts = () => {
     );
   }
 
-  /* ─────────── pestañas (carrusel tipo filtros) ─────────── */
-  const TabButton = ({ id, label }) => (
-    <Button
-      text={label}
-      onClick={() => setTab(id)}
-      className={`whitespace-nowrap ${
-        tab === id ? 'bg-[#001C63] text-white' : 'bg-white text-[#001C63]'
-      }`}
-    />
-  );
-
-  /* ─────────── contenido por pestaña ─────────── */
+  /* ─── render dinamico ─── */
   const renderContent = () => {
     switch (tab) {
+      /* Productos ---------------------------------------------------- */
       case 'productos':
         return (
           <>
-            {/* toggle categorías */} 
             {categories.length > 0 && (
               <div className="flex gap-2 overflow-x-auto pb-2 mb-3">
                 <Button
@@ -187,20 +157,26 @@ const RestaurantProducts = () => {
                       : 'bg-white text-[#001C63]'
                   }`}
                 />
-                {categories.map(cat => (
-                  <Button
-                    key={cat}
-                    text={cat}
-                    onClick={() => setSelectedCategory(cat)}
-                    className={`whitespace-nowrap ${
-                      selectedCategory === cat
-                        ? 'bg-[#001C63] text-white'
-                        : 'bg-white text-[#001C63]'
-                    }`}
-                  />
-                ))}
+                {categories.map(cat => {
+                  /* Capitalizar inicial */
+                  const label =
+                    cat.length ? cat.charAt(0).toUpperCase() + cat.slice(1) : cat;
+                  return (
+                    <Button
+                      key={cat}
+                      text={label}
+                      onClick={() => setSelectedCategory(cat)}
+                      className={`whitespace-nowrap ${
+                        selectedCategory === cat
+                          ? 'bg-[#001C63] text-white'
+                          : 'bg-white text-[#001C63]'
+                      }`}
+                    />
+                  );
+                })}
               </div>
             )}
+
             <ProductsList
               products={products}
               onAddToCart={handleAddToCart}
@@ -209,77 +185,71 @@ const RestaurantProducts = () => {
           </>
         );
 
+      /* Carrito ------------------------------------------------------ */
       case 'carrito':
-  return cartItems.length === 0 ? (
-    <p className="text-center text-sm text-gray-500">
-      El carrito está vacío.
-    </p>
-  ) : (
-    <>
-      {/* Lista de productos (deja espacio inferior para la barra de pago) */}
-      <div className="space-y-4 pb-40">
-        {cartItems.map(item => (
-          <div
-            key={item._id}
-            className="flex items-center gap-3 bg-gray-50 p-3 rounded-lg"
-          >
-            {/* Imagen */}
-            {item.image ? (
-              <img
-                src={item.image}
-                alt={item.name}
-                className="h-12 w-12 object-cover rounded"
-              />
-            ) : (
-              <div className="h-12 w-12 bg-gray-300 rounded flex items-center justify-center text-[10px] text-gray-600">
-                Img
+        return cartItems.length === 0 ? (
+          <p className="text-center text-sm text-gray-500">El carrito está vacío.</p>
+        ) : (
+          <>
+            <div className="space-y-4 pb-40">
+              {cartItems.map(item => (
+                <div
+                  key={item._id}
+                  className="flex items-center gap-3 bg-gray-50 p-3 rounded-lg"
+                >
+                  {/* Imagen */}
+                  {item.image ? (
+                    <img src={item.image} alt={item.name} className="h-12 w-12 object-cover rounded" />
+                  ) : (
+                    <div className="h-12 w-12 bg-gray-300 rounded flex items-center justify-center text-[10px] text-gray-600">
+                      Img
+                    </div>
+                  )}
+
+                  {/* Info */}
+                  <div className="flex-1">
+                    <p className="font-medium">{item.name}</p>
+                    <p className="text-sm text-gray-600">
+                      ${item.price.toFixed(2)} × {item.quantity}
+                    </p>
+                  </div>
+
+                  {/* Cantidad */}
+                  <div className="flex items-center gap-1">
+                    <Button text="−" onClick={() => decrement(item._id)} className="px-3" />
+                    <span className="w-6 text-center">{item.quantity}</span>
+                    <Button text="+" onClick={() => increment(item._id)} className="px-3" />
+                  </div>
+
+                  {/* Eliminar */}
+                  <Button
+                    onClick={() => removeFromCart(item._id)}
+                    className="p-2 rounded-full ml-2"
+                    text={<Cross size={20} />}
+                  />
+                </div>
+              ))}
+            </div>
+
+            {/* Barra de pago */}
+            <div className="fixed bottom-0 left-0 right-0 h-[15vh] bg-[#001C63] text-white p-4 flex justify-between items-center">
+              <div>
+                <span className="font-medium">{cartItems.length} productos</span>
+                <p className="font-bold">${cartTotal.toFixed(2)}</p>
               </div>
-            )}
-
-            {/* Información */}
-            <div className="flex-1">
-              <p className="font-medium">{item.name}</p>
-              <p className="text-sm text-gray-600">
-                ${item.price.toFixed(2)} × {item.quantity}
-              </p>
+              <Button
+                text="Pagar"
+                onClick={handleCheckout}
+                className="bg-white text-[#001C63] px-6 py-2 rounded-lg font-medium"
+              />
             </div>
+          </>
+        );
 
-            {/* Controles cantidad */}
-            <div className="flex items-center gap-1">
-              <Button text="−" onClick={() => decrement(item._id)} className="px-3" />
-              <span className="w-6 text-center">{item.quantity}</span>
-              <Button text="+" onClick={() => increment(item._id)} className="px-3" />
-            </div>
-
-            {/* Eliminar */}
-            <Button
-              onClick={() => removeFromCart(item._id)}
-              className="p-2 rounded-full ml-2"
-              text={<Cross size={20} />}
-            />
-          </div>
-        ))}
-      </div>
-
-      {/* Barra de pago fija abajo (15 % altura) */}
-      <div className="fixed bottom-0 left-0 right-0 h-[15vh] bg-[#001C63] text-white p-4 flex justify-between items-center">
-        <div>
-          <span className="font-medium">{cartItems.length} productos</span>
-          <p className="font-bold">${cartTotal.toFixed(2)}</p>
-        </div>
-        <Button
-          text="Pagar"
-          onClick={handleCheckout}
-          className="bg-white text-[#001C63] px-6 py-2 rounded-lg font-medium"
-        />
-      </div>
-    </>
-  );
-
+      /* Pedidos ------------------------------------------------------ */
       case 'pedidos':
         if (loadingBills)
           return <p className="text-center text-sm text-gray-500">Cargando…</p>;
-
         return bills.length === 0 ? (
           <p className="text-center text-sm text-gray-500">
             Aún no tienes pedidos aquí.
@@ -287,17 +257,12 @@ const RestaurantProducts = () => {
         ) : (
           <div className="flex flex-col gap-4 pb-8">
             {bills.map(b => (
-              <BillCard
-                key={b._id}
-                billId={b._id}
-                date={b.date}
-                total={b.total}
-                image={b.image}
-              />
+              <BillCard key={b._id} billId={b._id} date={b.date} total={b.total} image={b.image} />
             ))}
           </div>
         );
 
+      /* Inventario --------------------------------------------------- */
       case 'inventario':
         const invProducts = products.filter(p =>
           Array.isArray(p.restaurant_id)
@@ -321,7 +286,7 @@ const RestaurantProducts = () => {
     }
   };
 
-  /* ─────────── render total ─────────── */
+  /* ─── render final ─── */
   return (
     <div className="bg-[#E0EDFF] min-h-screen flex flex-col">
       {/* Header */}
@@ -340,22 +305,48 @@ const RestaurantProducts = () => {
           <ProfileButton />
         </div>
 
-        {/* Info breve restaurante */}
+        {/* Info restaurante */}
         <div className="bg-white p-4 rounded-lg shadow-sm">
           <p className="text-sm text-gray-600">
-            <span className="font-medium">Horario:</span>{' '}
-            {restaurant.hora_apertura} – {restaurant.hora_cierre}
+            <span className="font-medium">Horario:</span> {restaurant.hora_apertura} –{' '}
+            {restaurant.hora_cierre}
           </p>
         </div>
       </div>
 
-      {/* Carrusel de pestañas */}
+      {/* Tabs */}
       <div className="px-4">
         <div className="flex gap-2 overflow-x-auto pb-2">
-          <TabButton id="productos" label="Productos" />
-          <TabButton id="carrito" label={`Carrito (${cartItems.length})`} />
-          <TabButton id="pedidos" label="Pedidos" />
-          {isAdmin && <TabButton id="inventario" label="Inventario" />}
+          <Button
+            text="Productos"
+            onClick={() => setTab('productos')}
+            className={`whitespace-nowrap ${
+              tab === 'productos' ? 'bg-[#001C63] text-white' : 'bg-white text-[#001C63]'
+            }`}
+          />
+          <Button
+            text={`Carrito (${cartItems.length})`}
+            onClick={() => setTab('carrito')}
+            className={`whitespace-nowrap ${
+              tab === 'carrito' ? 'bg-[#001C63] text-white' : 'bg-white text-[#001C63]'
+            }`}
+          />
+          <Button
+            text="Pedidos"
+            onClick={() => setTab('pedidos')}
+            className={`whitespace-nowrap ${
+              tab === 'pedidos' ? 'bg-[#001C63] text-white' : 'bg-white text-[#001C63]'
+            }`}
+          />
+          {isAdmin && (
+            <Button
+              text="Inventario"
+              onClick={() => setTab('inventario')}
+              className={`whitespace-nowrap ${
+                tab === 'inventario' ? 'bg-[#001C63] text-white' : 'bg-white text-[#001C63]'
+              }`}
+            />
+          )}
         </div>
       </div>
 
@@ -368,4 +359,5 @@ const RestaurantProducts = () => {
 };
 
 export default RestaurantProducts;
+
 

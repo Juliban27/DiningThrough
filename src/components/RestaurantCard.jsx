@@ -1,56 +1,66 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Button from "./Button";
+
 const API = import.meta.env.VITE_API_URL;
 
-export const RestaurantCard = ({ id, _id, restaurant_id, name, hora_apertura, hora_cierre, latitude, longitude }) => {
+/**
+ * RestaurantCard
+ *  • Si el doc trae `image` ⇒ se usa.
+ *  • Si falla, intenta `${API}/restaurants/${_id}/imagen`.
+ *  • Si ambos fallan ⇒ placeholder “Sin imagen”.
+ */
+export const RestaurantCard = ({
+  id,
+  _id,
+  restaurant_id,
+  name,
+  hora_apertura,
+  hora_cierre,
+  latitude,
+  longitude,
+  image,           // ← URL que llega desde la BD
+}) => {
   const navigate = useNavigate();
-  const [imgError, setImgError] = React.useState(false);
+  const [imgError, setImgError] = useState(false);
 
-
-    const handleLocationClick = (e) => {
-    e.stopPropagation();      // ❌ evita que se dispare handleClick del padre
-    navigate(`/map?lat=${latitude}&lng=${longitude}`);
-    
-  };
-
-  // Determina si está abierto ahora
+  /* ---------- abierto ahora ---------- */
   const isOpenNow = useMemo(() => {
     if (!hora_apertura || !hora_cierre) return false;
     const [oH, oM] = hora_apertura.split(':').map(Number);
     const [cH, cM] = hora_cierre.split(':').map(Number);
-    const now = new Date();
-    const minutesNow = now.getHours() * 60 + now.getMinutes();
-    const minutesOpen = oH * 60 + oM;
-    const minutesClose = cH * 60 + cM;
-    if (minutesClose > minutesOpen) {
-      return minutesNow >= minutesOpen && minutesNow < minutesClose;
-    }
-    return minutesNow >= minutesOpen || minutesNow < minutesClose;
+    const nowMin = new Date().getHours() * 60 + new Date().getMinutes();
+    const openMin = oH * 60 + oM;
+    const closeMin = cH * 60 + cM;
+    return closeMin > openMin
+      ? nowMin >= openMin && nowMin < closeMin
+      : nowMin >= openMin || nowMin < closeMin;
   }, [hora_apertura, hora_cierre]);
 
-  // Usar _id para la imagen (generado por la BD) pero restaurant_id para la navegación
-  const imageSrc = `${API}/restaurants/${_id}/imagen`;
-  
-  // ID para navegar (preferimos restaurant_id personalizado)
-  const navigationId = restaurant_id || id;
+  /* ---------- imagen ---------- */
+  const fallbackSrc = `${API}/restaurants/${_id}/imagen`;
+  const imgSrc = !imgError && image ? image : fallbackSrc;
 
-  // Manejador de clic para navegar a la página de productos del restaurante
-  const handleClick = () => {
-    navigate(`/restaurants/${navigationId}`);
+  /* ---------- eventos ---------- */
+  const navigationId = restaurant_id || id;
+  const handleClick = () => navigate(`/restaurants/${navigationId}`);
+
+  const handleLocationClick = e => {
+    e.stopPropagation();
+    navigate(`/map?lat=${latitude}&lng=${longitude}`);
   };
 
+  /* ---------- UI ---------- */
   return (
     <button
       type="button"
       onClick={handleClick}
       className="w-full flex items-center gap-3 p-4 rounded-lg bg-white shadow-md active:scale-[0.97] transition"
     >
-      {/* Imagen o fallback */}
+      {/* Imagen */}
       <div className="shrink-0 h-20 w-20 rounded-md overflow-hidden bg-gray-200 flex items-center justify-center">
         {!imgError ? (
           <img
-            src={imageSrc}
+            src={imgSrc}
             alt={`Foto de ${name}`}
             className="h-full w-full object-cover"
             onError={() => setImgError(true)}
@@ -60,7 +70,7 @@ export const RestaurantCard = ({ id, _id, restaurant_id, name, hora_apertura, ho
         )}
       </div>
 
-      {/* Texto */}
+      {/* Información */}
       <div className="flex flex-col text-left">
         <h3 className="text-base font-semibold leading-5">{name}</h3>
         <span className="text-xs text-gray-600 mt-1">
@@ -73,16 +83,15 @@ export const RestaurantCard = ({ id, _id, restaurant_id, name, hora_apertura, ho
         >
           {isOpenNow ? 'Abierto ahora' : 'Cerrado ahora'}
         </span>
-          
       </div>
-      <div>
-          <Button
-              text={"Ubicación"}
-              onClick={handleLocationClick}
-              className={"text-xs "}
-              
-          />
-      </div>
+
+      {/* Enlace “Ubicación” (no es botón para evitar anidado) */}
+      <span
+        onClick={handleLocationClick}
+        className="text-xs ml-auto text-[#001C63] underline cursor-pointer"
+      >
+        Ubicación
+      </span>
     </button>
   );
 };
