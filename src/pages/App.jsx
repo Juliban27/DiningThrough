@@ -12,6 +12,7 @@ import ProductForm from './ProductForm';
 import RestaurantProducts from './RestaurantProducts';
 import Map from './Map';
 import BillDetails from '../components/BillDetails';
+import { CartProvider } from '../context/CartContext';
 
 /* ─── Pantalla de carga ─── */
 const LoadingScreen = () => (
@@ -126,7 +127,9 @@ function AppRoutes() {
 function App() {
   return (
     <AuthProvider>
-      <AppRoutes />
+      <CartProvider>
+        <AppRoutes />
+      </CartProvider>
     </AuthProvider>
   );
 }
