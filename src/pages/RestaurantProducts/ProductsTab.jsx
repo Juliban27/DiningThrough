@@ -6,13 +6,26 @@ import useRestaurant from '../../hooks/useRestaurant';
 export default function ProductsTab({ restaurantId }) {
   const { restaurant, products, categories, loading, error } = useRestaurant(restaurantId);
   const { addItem, setRestaurantId } = useCart();
+  const [selectedCategory, setSelectedCategory] = useState('');
 
   // Guardamos el restaurantId en el contexto para luego al hacer checkout
   useEffect(() => {
     if (restaurantId) setRestaurantId(restaurantId);
   }, [restaurantId, setRestaurantId]);
 
-  const [selectedCategory, setSelectedCategory] = useState('');
+  const handleAddToCart = (product) => {
+    try {
+      // Verificar stock antes de añadir
+      if (product.stock <= 0) {
+        alert(`${product.name} está agotado`);
+        return;
+      }
+      
+      addItem(product);
+    } catch (err) {
+      alert(err.message);
+    }
+  };
 
   if (loading) return <p className="text-center text-sm">Cargando productos…</p>;
   if (error)   return <p className="text-center text-red-500">{error}</p>;
@@ -49,7 +62,7 @@ export default function ProductsTab({ restaurantId }) {
 
       <ProductsList
         products={products}
-        onAddToCart={addItem}
+        onAddToCart={handleAddToCart}
         categoryFilter={selectedCategory}
       />
     </>

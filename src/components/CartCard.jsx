@@ -5,6 +5,7 @@ import Cross from '../assets/Cross';
 /**
  * CartCard.jsx
  * Representa la "caja" de cada producto en el carrito.
+ * Ahora incluye información de stock disponible.
  */
 export default React.memo(function CartCard({ item, onIncrement, onDecrement, onRemove }) {
   return (
@@ -28,6 +29,9 @@ export default React.memo(function CartCard({ item, onIncrement, onDecrement, on
         <p className="text-sm text-gray-600">
           ${item.price.toFixed(2)} × {item.quantity}
         </p>
+        <p className="text-xs text-gray-500">
+          Stock disponible: {item.stock || 'N/A'}
+        </p>
       </div>
 
       {/* Controles de cantidad */}
@@ -41,7 +45,8 @@ export default React.memo(function CartCard({ item, onIncrement, onDecrement, on
         <Button
           text="+"
           onClick={() => onIncrement(item._id)}
-          className="px-3"
+          className={`px-3 ${item.quantity >= (item.stock || 0) ? 'opacity-50 cursor-not-allowed' : ''}`}
+          disabled={item.quantity >= (item.stock || 0)}
         />
       </div>
 

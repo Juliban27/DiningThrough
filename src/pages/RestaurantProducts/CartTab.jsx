@@ -9,27 +9,59 @@ import CartCard from '../../components/CartCard';
  * Muestra los items en el carrito y la barra de pago fija.
  * Recibe `onCheckout` para cambiar a la pestaña Pedidos y `restaurantId`.
  */
-export default function CartTab({ onCheckout, restaurantId }) {
+export default function CartTab({ onCheckout, restaurantId, isAdmin }) {
   const { user } = useAuth();
-  const { items, increment, decrement, removeItem, checkout } = useCart();
+  const { items, increment, decrement, removeItem, checkout, currentRestaurantId } = useCart();
 
   const count = items.length;
   const total = items.reduce((sum, i) => sum + i.price * i.quantity, 0);
 
+  // Verificar si el carrito pertenece a este restaurante
+  const isCorrectRestaurant = currentRestaurantId === restaurantId;
+
   const handleCheckout = async () => {
     if (!count) return;
+    
     try {
+      // Validar que el carrito pertenece al restaurante actual
+      if (!isCorrectRestaurant) {
+        throw new Error('El carrito pertenece a otro restaurante');
+      }
+      
       // Llama a checkout del contexto, que crea bill y order con restaurantId
+      // y actualiza el inventario
       await checkout(user.id, restaurantId);
-      onCheckout();
+      onCheckout(); // Cambia a la pestaña de pedidos
     } catch (err) {
       alert(err.message);
     }
   };
 
+  if (!isCorrectRestaurant && items.length > 0) {
+    return (
+      <div className="p-4 bg-red-50 rounded-lg text-center my-4">
+        <p className="text-red-600 mb-4">
+          El carrito contiene productos de otro restaurante.
+        </p>
+        <Button 
+          text="Vaciar carrito y continuar" 
+          onClick={() => {
+            if (window.confirm('¿Estás seguro de vaciar el carrito?')) {
+              // Limpiar carrito y establecer el restaurante actual
+              localStorage.removeItem('cart');
+              localStorage.setItem('currentRestaurantId', restaurantId);
+              window.location.reload();
+            }
+          }}
+          className="bg-red-500 text-white"
+        />
+      </div>
+    );
+  }
+
   if (count === 0) {
     return (
-      <p className="text-center text-sm text-gray-500">
+      <p className="text-center text-sm text-gray-500 py-10">
         El carrito está vacío.
       </p>
     );
