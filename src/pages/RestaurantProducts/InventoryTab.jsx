@@ -7,6 +7,7 @@ import InventaryCard from '../../components/InventaryCard';
  * InventoryTab.jsx
  * Muestra los productos en inventario para administradores.
  */
+
 export default function InventoryTab() {
   const { id } = useParams();
   const {
@@ -43,10 +44,23 @@ export default function InventoryTab() {
           body: JSON.stringify(updatedProduct),
         }
       );
+      
       if (!response.ok) throw new Error('Error al guardar el producto');
-      // Refrescar la caché SWR
-      await mutate();
+      
+      // Actualización optimista de la UI
+      setLocalProducts(currentProducts => 
+        currentProducts.map(p => 
+          p._id === updatedProduct._id ? updatedProduct : p
+        )
+      );
+      
+      // Refrescar datos desde el servidor
+      if (mutate && typeof mutate === 'function') {
+        await mutate();
+      }
+      
       console.log('¡Producto actualizado correctamente!');
+      return true;
     } catch (err) {
       console.error('Error al guardar:', err);
       throw err;
@@ -61,17 +75,25 @@ export default function InventoryTab() {
         `${API}/products/${productToDelete._id}`,
         { method: 'DELETE' }
       );
+      
       if (!response.ok) throw new Error('Error al eliminar el producto');
+      
       // Actualización optimista
       setLocalProducts((current) =>
         current.filter((p) => p._id !== productToDelete._id)
       );
-      // Opcional: refrescar desde el servidor
-      if (restaurant) {
-        const fresh = await getProductsByRestaurantCached(restaurant, true);
-        setLocalProducts(fresh);
+      
+      // Refrescar datos desde el servidor
+      if (mutate && typeof mutate === 'function') {
+        await mutate();
+      } else if (restaurant && getProductsByRestaurantCached) {
+        // Plan B: recargar productos manualmente si mutate no está disponible
+        const fresh = await getProductsByRestaurantCached(restaurant._id, true);
+        if (fresh) setLocalProducts(fresh);
       }
+      
       console.log('¡Producto eliminado correctamente!');
+      return true;
     } catch (err) {
       console.error('Error al eliminar:', err);
       throw err;

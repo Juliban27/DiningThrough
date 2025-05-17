@@ -10,8 +10,8 @@ import NoPermiso from './NoPermiso';
 import PublicOnlyRoute from '../context/PublicOnlyRoute';
 import ProductForm from './ProductForm';
 import RestaurantProducts from './RestaurantProducts';
-import Map from './Map';
 import BillDetails from '../components/BillDetails';
+import MapView from "../pages/MapView";
 import { CartProvider } from '../context/CartContext';
 
 /* ─── Pantalla de carga ─── */
@@ -97,15 +97,6 @@ function AppRoutes() {
 
           {/* Mapa */}
           <Route
-            path="/map"
-            element={
-              <ProtectedRoute>
-                <Map />
-              </ProtectedRoute>
-            }
-          />
-
-          <Route
             path="/productform"
             element={
               <ProtectedRoute requireAdmin>
@@ -120,6 +111,23 @@ function AppRoutes() {
             element={
               <ProtectedRoute>
                 <BillDetails />
+              </ProtectedRoute>
+            }
+          />
+            <Route
+            path="/mapsview"
+            element={
+              <ProtectedRoute>
+                <MapView/>
+              </ProtectedRoute>
+            }
+          />
+
+            <Route
+            path="/mapsview/:restaurantId?"
+            element={
+              <ProtectedRoute>
+                <MapView/>
               </ProtectedRoute>
             }
           />

@@ -1,3 +1,4 @@
+
 import React, { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -5,9 +6,9 @@ const API = import.meta.env.VITE_API_URL;
 
 /**
  * RestaurantCard
- *  • Si el doc trae `image` ⇒ se usa.
- *  • Si falla, intenta `${API}/restaurants/${_id}/imagen`.
- *  • Si ambos fallan ⇒ placeholder “Sin imagen”.
+ *  • Si el doc trae `image` ⇒ se usa.
+ *  • Si falla, intenta `${API}/restaurants/${_id}/imagen`.
+ *  • Si ambos fallan ⇒ placeholder "Sin imagen".
  */
 export const RestaurantCard = ({
   id,
@@ -18,7 +19,7 @@ export const RestaurantCard = ({
   hora_cierre,
   latitude,
   longitude,
-  image,           // ← URL que llega desde la BD
+  image,           // ← URL que llega desde la BD
 }) => {
   const navigate = useNavigate();
   const [imgError, setImgError] = useState(false);
@@ -41,12 +42,13 @@ export const RestaurantCard = ({
   const imgSrc = !imgError && image ? image : fallbackSrc;
 
   /* ---------- eventos ---------- */
-  const navigationId = restaurant_id || id;
+  const navigationId = restaurant_id || _id || id;
   const handleClick = () => navigate(`/restaurants/${navigationId}`);
 
-  const handleLocationClick = e => {
-    e.stopPropagation();
-    navigate(`/map?lat=${latitude}&lng=${longitude}`);
+  // Manejador para navegar al mapa y mostrar la ubicación del restaurante
+  const handleLocationClick = (e) => {
+    e.stopPropagation(); // Evitar que el evento de clic se propague al botón principal
+    navigate(`/mapsview/${navigationId}`);
   };
 
   /* ---------- UI ---------- */
@@ -85,7 +87,7 @@ export const RestaurantCard = ({
         </span>
       </div>
 
-      {/* Enlace “Ubicación” (no es botón para evitar anidado) */}
+      {/* Enlace "Ubicación" (previene propagación al botón principal) */}
       <span
         onClick={handleLocationClick}
         className="text-xs ml-auto text-[#001C63] underline cursor-pointer"

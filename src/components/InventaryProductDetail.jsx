@@ -34,6 +34,7 @@ export default function InventaryProductDetail({
   const [form, setForm] = useState({ ...product });
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
+  const [saveSuccess, setSaveSuccess] = useState(false);
 
   // Reset form when product changes
   useEffect(() => {
@@ -50,6 +51,7 @@ export default function InventaryProductDetail({
       processedValue = value === '' ? '' : Number(value);
     }
     
+    // Actualizar el formulario
     setForm(prev => ({ ...prev, [name]: processedValue }));
     
     // Clear error for this field when changed
@@ -82,6 +84,7 @@ export default function InventaryProductDetail({
     
     try {
       setLoading(true);
+      setSaveSuccess(false);
       
       // Process data before saving if needed
       let dataToSave = { ...form };
@@ -93,16 +96,25 @@ export default function InventaryProductDetail({
       if (onSave) {
         await onSave(dataToSave);
       } else {
-        await fetch(`${API}/products/${product._id}`, {
+        const response = await fetch(`${API}/products/${product._id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(dataToSave),
         });
+        
+        if (!response.ok) {
+          throw new Error(`Error: ${response.status}`);
+        }
       }
-      onClose();
+      
+      // Indicar éxito y cerrar tras un breve delay
+      setSaveSuccess(true);
+      setTimeout(() => {
+        onClose();
+      }, 500);
     } catch (error) {
       console.error('Error saving product:', error);
-      setErrors({ submit: 'Error al guardar el producto' });
+      setErrors({ submit: `Error al guardar el producto: ${error.message}` });
     } finally {
       setLoading(false);
     }
@@ -122,12 +134,17 @@ export default function InventaryProductDetail({
       if (onDelete) {
         await onDelete(product);
       } else {
-        await fetch(`${API}/products/${product._id}`, { method: 'DELETE' });
+        const response = await fetch(`${API}/products/${product._id}`, { method: 'DELETE' });
+        
+        if (!response.ok) {
+          throw new Error(`Error: ${response.status}`);
+        }
       }
+      
       onClose();
     } catch (error) {
       console.error('Error deleting product:', error);
-      setErrors({ submit: 'Error al eliminar el producto' });
+      setErrors({ submit: `Error al eliminar el producto: ${error.message}` });
     } finally {
       setLoading(false);
     }
@@ -184,6 +201,13 @@ export default function InventaryProductDetail({
 
       {/* 75 % – formulario y botones */}
       <div className="flex-1 bg-white overflow-y-auto p-6">
+        {/* Mensaje de éxito */}
+        {saveSuccess && (
+          <div className="mb-4 p-2 bg-green-100 border border-green-300 text-green-700 rounded">
+            ¡Producto guardado correctamente!
+          </div>
+        )}
+        
         {/* Mensaje de error general */}
         {errors.submit && (
           <div className="mb-4 p-2 bg-red-100 border border-red-300 text-red-700 rounded">
@@ -283,7 +307,7 @@ export default function InventaryProductDetail({
             <Button
               disabled={loading}
               onClick={handleSave}
-              className="p-2 rounded-full"
+              className={`p-2 rounded-full ${saveSuccess ? 'bg-green-500' : ''}`}
               text={<Tick size={24} />}
             />
             <Button
