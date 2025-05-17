@@ -71,3 +71,55 @@ export const getProductsByRestaurant = async (restaurant) => {
         throw error;
     }
 };
+
+// ————————————————————————————
+// Caché para info de restaurante (nombre e imagen)
+const restaurantCache = {};
+
+/**
+ * Obtiene nombre e imagen de un restaurante por restaurant_id
+ * Usa caché en memoria para evitar repetidas peticiones
+ * @param {string} rid - restaurant_id
+ * @returns {Promise<{name: string, image: string|null}>}
+ */
+export async function getRestaurantInfo(rid) {
+    if (restaurantCache[rid]) {
+        return restaurantCache[rid];
+    }
+    try {
+        const [nameRes, imgRes] = await Promise.all([
+            fetch(`${API}/restaurants/${rid}/nombre`),
+            fetch(`${API}/restaurants/${rid}/imagen`)
+        ]);
+        const nameData = nameRes.ok ? await nameRes.json() : {};
+        const imgData  = imgRes.ok  ? await imgRes.json()  : {};
+
+        const info = {
+            name:  nameData.name  || '',
+            image: imgData.image || null
+        };
+        restaurantCache[rid] = info;
+        return info;
+    } catch (err) {
+        console.error('Error en getRestaurantInfo:', err);
+        return { name: '', image: null };
+    }
+}
+
+//Cacjé para productos
+const productsCache = {};
+
+/** 
+ * Obtiene productos filtrados por restaurante usando caché en memoria. 
+ * @param {Object} restaurant – Objeto con _id y restaurant_id
+ * @returns {Promise<Array>}
+ */
+export async function getProductsByRestaurantCached(restaurant) {
+  const key = restaurant.restaurant_id || restaurant._id;
+  if (productsCache[key]) {
+    return productsCache[key];
+  }
+  const filtered = await getProductsByRestaurant(restaurant);
+  productsCache[key] = filtered;
+  return filtered;
+}

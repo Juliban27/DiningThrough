@@ -10,8 +10,9 @@ import NoPermiso from './NoPermiso';
 import PublicOnlyRoute from '../context/PublicOnlyRoute';
 import ProductForm from './ProductForm';
 import RestaurantProducts from './RestaurantProducts';
-import Map from './Map';
 import BillDetails from '../components/BillDetails';
+import MapView from "../pages/MapView";
+import { CartProvider } from '../context/CartContext';
 
 /* ─── Pantalla de carga ─── */
 const LoadingScreen = () => (
@@ -34,91 +35,107 @@ function ProtectedRoute({ children, requireAdmin = false }) {
 function AppRoutes() {
   return (
     <BrowserRouter>
-      <Routes>
-        {/* Rutas públicas (solo si NO estás autenticado) */}
-        <Route
-          path="/login"
-          element={
-            <PublicOnlyRoute>
-              <Login />
-            </PublicOnlyRoute>
-          }
-        />
-        <Route
-          path="/signup"
-          element={
-            <PublicOnlyRoute>
-              <Signup />
-            </PublicOnlyRoute>
-          }
-        />
+      <CartProvider>
+        <Routes>
+          {/* Rutas públicas (solo si NO estás autenticado) */}
+          <Route
+            path="/login"
+            element={
+              <PublicOnlyRoute>
+                <Login />
+              </PublicOnlyRoute>
+            }
+          />
+          <Route
+            path="/signup"
+            element={
+              <PublicOnlyRoute>
+                <Signup />
+              </PublicOnlyRoute>
+            }
+          />
 
-        <Route path="/no-permiso" element={<NoPermiso />} />
+          <Route path="/no-permiso" element={<NoPermiso />} />
 
-        {/* Admin */}
-        {/* <Route
-          path="/inventory"
-          element={
-            <ProtectedRoute requireAdmin>
-              <Inventory />
-            </ProtectedRoute>
-          }
-        /> */}
+          {/* Admin */}
+          {/* <Route
+            path="/inventory"
+            element={
+              <ProtectedRoute requireAdmin>
+                <Inventory />
+              </ProtectedRoute>
+            }
+          /> */}
 
-        {/* Página principal */}
-        <Route
-          path="/"
-          element={
-            <ProtectedRoute>
-              <Index />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/index"
-          element={
-            <ProtectedRoute>
-              <Index />
-            </ProtectedRoute>
-          }
-        />
+          {/* Página principal */}
+          <Route
+            path="/"
+            element={
+              <ProtectedRoute>
+                <Index />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/index"
+            element={
+              <ProtectedRoute>
+                <Index />
+              </ProtectedRoute>
+            }
+          />
 
-        {/* Productos de un restaurante */}
-        <Route
-          path="/restaurants/:id"
-          element={
-            <ProtectedRoute>
-              <RestaurantProducts />
-            </ProtectedRoute>
-          }
-        />
+          {/* Productos de un restaurante */}
+          <Route
+            path="/restaurants/:id"
+            element={
+              <ProtectedRoute>
+                <RestaurantProducts />
+              </ProtectedRoute>
+            }
+          />
 
-        {/* Mapa */}
-        <Route
-          path="/map"
-          element={
-            <ProtectedRoute>
-              <Map />
-            </ProtectedRoute>
-          }
-        />
+          {/* Mapa */}
+          <Route
+            path="/productform"
+            element={
+              <ProtectedRoute requireAdmin>
+                <ProductForm />
+              </ProtectedRoute>
+            }
+          />
 
-        {/* Inventario: formulario de producto sin protección */}
-        <Route path="/productform" element={<ProductForm />} />
+          {/* NUEVO — Detalle de factura */}
+          <Route
+            path="/bills/:id"
+            element={
+              <ProtectedRoute>
+                <BillDetails />
+              </ProtectedRoute>
+            }
+          />
+            <Route
+            path="/mapsview"
+            element={
+              <ProtectedRoute>
+                <MapView/>
+              </ProtectedRoute>
+            }
+          />
 
-        {/* NUEVO — Detalle de factura */}
-        <Route
-          path="/bills/:id"
-          element={
-            <ProtectedRoute>
-              <BillDetails />
-            </ProtectedRoute>
-          }
-        />
+            <Route
+            path="/mapsview/:restaurantId?"
+            element={
+              <ProtectedRoute>
+                <MapView/>
+              </ProtectedRoute>
+            }
+          />
 
-        {/* Wildcard → home */}
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
+          {/* Wildcard → home */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+        </CartProvider>
     </BrowserRouter>
   );
 }
@@ -126,7 +143,7 @@ function AppRoutes() {
 function App() {
   return (
     <AuthProvider>
-      <AppRoutes />
+        <AppRoutes />
     </AuthProvider>
   );
 }

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import Magnifier from '../assets/Magnifier';
 import ProfileButton from '../components/ProfileButton';
 import { RestaurantCard } from '../components/RestaurantCard';
+import MapButton from '../components/MapButton';
 
 const API = import.meta.env.VITE_API_URL;
 
@@ -74,18 +75,24 @@ const Index = () => {
             {filtered.map(r => (
               <RestaurantCard
                 key={r._id}
-                id={r.restaurant_id || r._id}
+                id={r._id}
                 _id={r._id}
                 restaurant_id={r.restaurant_id}
                 name={r.name}
                 hora_apertura={r.hora_apertura}
                 hora_cierre={r.hora_cierre}
-                image={r.image}            
+                image={r.image}
+                // Pasamos las coordenadas necesarias para el mapa
+                latitude={r.latitude}
+                longitude={r.longitude}
               />
             ))}
           </div>
         )}
       </div>
+      
+      {/* Botón flotante para ver el mapa general */}
+      <MapButton />
     </div>
   );
 };
