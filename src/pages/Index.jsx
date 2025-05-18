@@ -1,3 +1,5 @@
+// src/pages/Index.jsx
+
 import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import Magnifier from '../assets/Magnifier';
@@ -32,12 +34,14 @@ const Index = () => {
     r.name.toLowerCase().includes(search.toLowerCase())
   );
 
-  /* ─── UI ─── */
   return (
     <div className="bg-gradient-to-b from-[#E0EDFF] to-[#C7E0FF] min-h-screen flex flex-col">
-      {/* Header */}
+      {/* Header con background y mayor altura */}
       <motion.div 
-        className="h-[25vh] p-4 flex flex-col"
+        className="h-[30vh] p-4 flex flex-col bg-cover bg-center"
+        style={{
+          backgroundImage: "url('https://usabana.widen.net/content/dff4da0b-1c1e-47ac-92ba-9b107c15f8b2/web/_Restaurante%20Arcos-07.jpg')"
+        }}
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
@@ -48,7 +52,7 @@ const Index = () => {
 
         <div className="flex-1 flex flex-col items-center justify-center">
           <motion.h1 
-            className="text-[#001C63] text-4xl font-bold tracking-wider drop-shadow-sm"
+            className="text-white text-4xl font-bold tracking-wider drop-shadow-lg"
             initial={{ scale: 0.9 }}
             animate={{ scale: 1 }}
             transition={{ duration: 0.3 }}
@@ -76,9 +80,9 @@ const Index = () => {
         </div>
       </motion.div>
 
-      {/* Lista de restaurantes */}
+      {/* Lista de restaurantes, solapando el header */}
       <motion.div 
-        className="bg-white flex-1 rounded-t-[2rem] overflow-y-auto px-4 pt-6 shadow-[0_-8px_30px_-12px_rgba(0,0,0,0.1)]"
+        className="bg-white flex-1 rounded-t-[2rem] -mt-8 overflow-y-auto px-4 pt-6 shadow-[0_-8px_30px_-12px_rgba(0,0,0,0.1)] relative"
         initial={{ y: 100 }}
         animate={{ y: 0 }}
         transition={{ duration: 0.5, type: "spring", stiffness: 100 }}

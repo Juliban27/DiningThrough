@@ -101,7 +101,7 @@ function AppRoutes() {
           <Route
             path="/orders/:id"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute requireAdmin>
                 <OrderDetailsWrapper />
               </ProtectedRoute>
             }
