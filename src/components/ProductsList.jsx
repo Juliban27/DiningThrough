@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import ProductCard from './ProductCard';
+import { useAuth } from '../context/AuthContext'; 
 
 /**
  * Componente para mostrar una lista de productos con opciones de filtrado
@@ -10,8 +11,8 @@ import ProductCard from './ProductCard';
  * @param {string} [props.categoryFilter] - Categoría por la que filtrar (opcional)
  */
 const ProductsList = ({ products, onAddToCart, categoryFilter }) => {
+    const { user } = useAuth();
     const [searchTerm, setSearchTerm] = useState('');
-
     // Filtramos productos según la búsqueda y la categoría
     const filteredProducts = products.filter(product => {
         const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase());
@@ -46,6 +47,7 @@ const ProductsList = ({ products, onAddToCart, categoryFilter }) => {
                             key={product._id}
                             product={product}
                             onAddToCart={onAddToCart}
+                            userId={user?.id}
                         />
                     ))}
                 </div>
@@ -53,5 +55,6 @@ const ProductsList = ({ products, onAddToCart, categoryFilter }) => {
         </div>
     );
 };
+
 
 export default ProductsList;
