@@ -1,65 +1,111 @@
-// src/components/OrderAdminCard.jsx
-import React from 'react'
-import Tick from '../assets/Tick'
-import Cross from '../assets/Cross'
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import Button from './Button';
+import DotsVertical from '../assets/DotsVertical';
 
-const API_URL = import.meta.env.VITE_API_URL
+export const OrderAdminCard = ({ order, onUpdateStatus }) => {
+  const navigate = useNavigate();
+  const { _id, products, state } = order;
 
-export const OrderAdminCard = ({ order, onStatusChanged }) => {
-  const handleUpdateStatus = async (newStatus) => {
-    try {
-      const response = await fetch(`${API_URL}/orders/${order._id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ state: newStatus }),
-      })
-      if (!response.ok) throw new Error('Error al actualizar estado')
-      const updated = await response.json()
-      onStatusChanged?.(updated)
-    } catch (error) {
-      console.error(error)
-      alert('Error actualizando estado del pedido.')
-    }
-  }
+  const [isMobile, setIsMobile] = useState(false);
 
-  const isAccepted = order.state === 'accepted'
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  const stateLabels = {
+    pending: 'Pendiente para confirmar',
+    accepted: 'Pedido aceptado', // corregido
+    ready: 'Listo para reclamar',
+  };
+
+  const acceptButtonText = {
+    pending: 'Confirmar pedido',
+    accepted: 'Marcar como listo', // corregido
+    ready: 'Marcar como entregado',
+  };
+
+  const handleAccept = () => {
+    if (state === 'pending') onUpdateStatus(_id, 'accepted'); // corregido
+    else if (state === 'accepted') onUpdateStatus(_id, 'ready');
+    else if (state === 'ready') onUpdateStatus(_id, 'claimed');
+  };
+
+  const handleReject = () => {
+    if (state === 'pending') onUpdateStatus(_id, 'rejected');
+  };
+
+  const openDetails = () => {
+    navigate(`/orders/${_id}`);
+  };
+
+  const productSummary = products
+    .map(p => `${p.name} x${p.quantity || 1}`)
+    .join(', ');
 
   return (
-    <div className="bg-white p-4 rounded-lg shadow flex justify-between items-center mb-4">
-      <div className="flex-1 pr-4">
-        <p className="font-medium text-gray-800">Pedido #{order._id}</p>
-        <p className="text-sm text-gray-600">
-          {order.client_id} - {order.date && new Date(order.date).toLocaleString()}
+    <div className="flex justify-between items-center border p-4 rounded-lg mb-3 bg-white shadow">
+      <div>
+        <p className="font-semibold text-gray-800">Pedido #{_id}</p>
+        <p className="text-sm text-gray-600">{productSummary}</p>
+        <p className="mt-1 text-xs font-medium text-blue-600 capitalize">
+          Estado: {stateLabels[state] || state}
         </p>
       </div>
-      <div className="flex gap-2">
-        {isAccepted ? (
-          <button
-            onClick={() => handleUpdateStatus('ready')}
-            className="p-2 rounded-full hover:bg-blue-100"
-            aria-label="Marcar listo"
-          >
-            <Tick size={20} className="text-blue-500" />
-          </button>
+
+      <div className="flex gap-3 items-center">
+        {isMobile ? (
+          <Button
+            onClick={openDetails}
+            className="p-2 rounded hover:bg-gray-200"
+            text={<DotsVertical size={20} />}
+            aria-label="Ver detalles"
+          />
         ) : (
           <>
-            <button
-              onClick={() => handleUpdateStatus('accepted')}
-              className="p-2 rounded-full hover:bg-green-100"
-              aria-label="Aceptar"
-            >
-              <Tick size={20} className="text-green-500" />
-            </button>
-            <button
-              onClick={() => handleUpdateStatus('rejected')}
-              className="p-2 rounded-full hover:bg-red-100"
-              aria-label="Rechazar"
-            >
-              <Cross size={20} className="text-red-500" />
-            </button>
+            {state === 'pending' && (
+              <>
+                <Button
+                  onClick={handleAccept}
+                  className="bg-green-500 hover:bg-green-600 text-white p-2 rounded"
+                  text={acceptButtonText[state]}
+                  aria-label="Confirmar pedido"
+                />
+                <Button
+                  onClick={handleReject}
+                  className="bg-red-500 hover:bg-red-600 text-white p-2 rounded"
+                  text="Rechazar pedido"
+                  aria-label="Rechazar pedido"
+                />
+              </>
+            )}
+
+            {(state === 'accepted' || state === 'ready') && (
+              <Button
+                onClick={handleAccept}
+                className="bg-green-500 hover:bg-green-600 text-white p-2 rounded"
+                text={acceptButtonText[state]}
+                aria-label={acceptButtonText[state]}
+              />
+            )}
+
+            <Button
+              onClick={openDetails}
+              className="p-2 rounded hover:bg-gray-200"
+              text={<DotsVertical size={20} />}
+              aria-label="Ver detalles"
+            />
           </>
         )}
       </div>
     </div>
-  )
-}
+  );
+};
+
+
+
+
+

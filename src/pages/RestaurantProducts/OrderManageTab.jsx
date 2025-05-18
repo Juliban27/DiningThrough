@@ -1,50 +1,79 @@
-// src/pages/RestaurantProducts/OrderManageTab.jsx
 import React, { useEffect, useState } from 'react';
-import { OrderAdminCard } from '../../components/OrderAdminCard'; // Ajusta según tu estructura
+import { OrderAdminCard } from '../../components/OrderAdminCard';
 
-const API_URL = import.meta.env.VITE_API_URL;
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 export const OrderManageTab = ({ restaurantId }) => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // Cambié 'acepted' por 'accepted'
+  const validStates = ['pending', 'accepted', 'ready'];
 
   useEffect(() => {
-    async function fetchOrders() {
+    if (!restaurantId) return;
+
+    const fetchOrders = async () => {
+      setLoading(true);
       try {
-        const res = await fetch(`${API_URL}/orders`);
+        const res = await fetch(`${API_BASE}/orders`);
+        if (!res.ok) throw new Error('Error al obtener órdenes');
         const data = await res.json();
+
+        // Filtra por restaurante y estados válidos
         const filtered = data.filter(
-          o =>
-            o.restaurant_id === restaurantId &&
-            !['rejected', 'claimed'].includes(o.state)
+          order =>
+            order.punto_venta === restaurantId && validStates.includes(order.state)
         );
         setOrders(filtered);
+        setError(null);
       } catch (err) {
-        console.error(err);
+        setError(err.message || 'Error desconocido');
       } finally {
         setLoading(false);
       }
-    }
+    };
+
     fetchOrders();
   }, [restaurantId]);
 
-  const handleStatusChange = updated => {
-    setOrders(curr => curr.filter(o => o._id !== updated._id));
+  const onUpdateStatus = async (orderId, newState) => {
+    try {
+      const res = await fetch(`${API_BASE}/orders/${orderId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ state: newState }),
+      });
+      if (!res.ok) throw new Error('Error al actualizar estado');
+      const updatedOrder = await res.json();
+
+      setOrders(prev =>
+        prev
+          .map(o => (o._id === orderId ? updatedOrder : o))
+          .filter(o => validStates.includes(o.state))
+      );
+    } catch (err) {
+      alert(err.message || 'Error actualizando estado');
+    }
   };
 
-  if (loading) return <p className="text-center p-4">Cargando órdenes…</p>;
-  if (!orders.length) return <p className="text-center p-4">No hay órdenes para gestionar.</p>;
+  if (loading) return <p>Cargando órdenes...</p>;
+  if (error) return <p className="text-red-500">Error: {error}</p>;
+  if (orders.length === 0) return <p>No hay órdenes pendientes o en proceso.</p>;
 
   return (
-    <div className="space-y-4 p-4">
+    <div className="space-y-4">
       {orders.map(order => (
         <OrderAdminCard
           key={order._id}
           order={order}
-          onStatusChanged={handleStatusChange}
+          onUpdateStatus={onUpdateStatus}
         />
       ))}
     </div>
   );
 };
+
+
 

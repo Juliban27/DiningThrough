@@ -14,6 +14,8 @@ import BillDetails from '../components/BillDetails';
 import MapView from "../pages/MapView";
 import { CartProvider } from '../context/CartContext';
 
+import { OrderDetailsWrapper } from '../components/OrderDetailsWrapper';  // IMPORTA el wrapper
+
 /* ─── Pantalla de carga ─── */
 const LoadingScreen = () => (
   <div className="flex items-center justify-center h-screen">
@@ -95,6 +97,16 @@ function AppRoutes() {
             }
           />
 
+          {/* NUEVA RUTA: Detalle de orden */}
+          <Route
+            path="/orders/:id"
+            element={
+              <ProtectedRoute>
+                <OrderDetailsWrapper />
+              </ProtectedRoute>
+            }
+          />
+
           {/* Mapa */}
           <Route
             path="/productform"
@@ -114,20 +126,19 @@ function AppRoutes() {
               </ProtectedRoute>
             }
           />
-            <Route
+          <Route
             path="/mapsview"
             element={
               <ProtectedRoute>
-                <MapView/>
+                <MapView />
               </ProtectedRoute>
             }
           />
-
-            <Route
+          <Route
             path="/mapsview/:restaurantId?"
             element={
               <ProtectedRoute>
-                <MapView/>
+                <MapView />
               </ProtectedRoute>
             }
           />
@@ -135,7 +146,7 @@ function AppRoutes() {
           {/* Wildcard → home */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
-        </CartProvider>
+      </CartProvider>
     </BrowserRouter>
   );
 }
@@ -143,10 +154,11 @@ function AppRoutes() {
 function App() {
   return (
     <AuthProvider>
-        <AppRoutes />
+      <AppRoutes />
     </AuthProvider>
   );
 }
 
 export default App;
+
 
