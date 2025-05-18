@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import Tick from '../assets/Tick';	
 import Cross from '../assets/Cross';
 import Return from '../assets/Return';
@@ -7,13 +7,9 @@ import Button from './Button';
 
 export const OrderDetails = ({ order, onUpdateStatus }) => {
   const navigate = useNavigate();
-  const location = useLocation();
 
   const { _id, client_id, client_name, products, state, punto_venta } = order;
   const [userName, setUserName] = useState('');
-
-  // URL origen para volver (si no hay, usa el restaurante por defecto)
-  const from = location.state?.from || `/restaurants/${punto_venta}`;
 
   useEffect(() => {
     if (!client_id) {
@@ -53,9 +49,13 @@ export const OrderDetails = ({ order, onUpdateStatus }) => {
     </li>
   ));
 
-  // Navegar de vuelta a la URL origen
+  // Volver atrás sin duplicar, o ir al restaurante si no hay historial
   const goBackToManage = () => {
-    navigate(from, { replace: true });
+    if (window.history.length > 2) {
+      navigate(-1);
+    } else {
+      navigate(`/restaurants/${punto_venta}`, { replace: true });
+    }
   };
 
   return (
@@ -103,6 +103,7 @@ export const OrderDetails = ({ order, onUpdateStatus }) => {
     </div>
   );
 };
+
 
 
 

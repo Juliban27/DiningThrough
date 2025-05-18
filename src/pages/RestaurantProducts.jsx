@@ -1,4 +1,6 @@
-import React, { useState } from 'react';
+// src/pages/RestaurantProducts.jsx
+
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import Return from '../assets/Return';
@@ -23,6 +25,15 @@ export default function RestaurantProducts() {
   const { items } = useCart();
   const { restaurant, loading, error } = useRestaurant(id);
   const [tab, setTab] = useState('productos');
+  const [image, setImage] = useState(null);
+
+  useEffect(() => {
+    if (!id) return;
+    fetch(`${import.meta.env.VITE_API_URL}/restaurants/${id}/imagen`)
+      .then(res => res.json())
+      .then(data => setImage(data.image))
+      .catch(() => setImage(null));
+  }, [id]);
 
   if (loading) return (
     <div className="bg-gradient-to-b from-[#E0EDFF] to-[#C7E0FF] min-h-screen flex items-center justify-center">
@@ -40,7 +51,7 @@ export default function RestaurantProducts() {
 
   if (error || !restaurant) return (
     <div className="bg-gradient-to-b from-[#E0EDFF] to-[#C7E0FF] min-h-screen flex items-center justify-center p-4">
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
@@ -52,10 +63,10 @@ export default function RestaurantProducts() {
           </svg>
         </div>
         <p className="text-red-500 font-medium text-lg">{error || 'Restaurante no encontrado'}</p>
-        <Button 
-          text="Volver" 
+        <Button
+          text="Volver"
           onClick={() => navigate(-1)}
-          className="bg-[#001C63] text-white hover:bg-[#0026A9] transition-colors" 
+          className="bg-[#001C63] text-white hover:bg-[#0026A9] transition-colors"
         />
       </motion.div>
     </div>
@@ -87,98 +98,89 @@ export default function RestaurantProducts() {
   return (
     <div className="bg-gradient-to-b from-[#E0EDFF] to-[#C7E0FF] min-h-screen flex flex-col">
       {/* Header */}
-      <motion.div 
-        className="p-5"
+      <motion.div
+        className="p-5 relative overflow-hidden rounded-b-3xl flex items-center mb-4"
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
+        style={{
+          backgroundImage: image ? `url(${image})` : undefined,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
+        }}
       >
-        <div className="flex items-center mb-4">
-          <motion.button
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => navigate(-1)}
-            className="p-2 rounded-full bg-white/80 shadow-sm hover:bg-blue-100 transition-colors"
-            aria-label="Volver"
-          >
-            <Return size={24} className="text-[#001C63]" />
-          </motion.button>
-          
-          <h1 className="flex-1 text-center text-[#001C63] text-2xl font-bold pr-6 drop-shadow-sm">
-            {restaurant.name}
-          </h1>
-          
-          <ProfileButton />
-        </div>
-        
-        <motion.div 
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2, duration: 0.4 }}
-          className="bg-white p-4 rounded-xl shadow-sm"
+        {/* Overlay oscuro */}
+        <div className="absolute inset-0 bg-black/40 pointer-events-none rounded-b-3xl"></div>
+
+        <motion.button
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={() => navigate(-1)}
+          className="relative z-10 p-2 rounded-full bg-white/80 shadow-sm hover:bg-blue-100 transition-colors"
+          aria-label="Volver"
         >
-          <div className="flex items-center">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-[#001C63] mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <p className="text-gray-700">
-              <span className="font-medium">Horario:</span> {restaurant.hora_apertura} – {restaurant.hora_cierre}
-            </p>
-          </div>
-        </motion.div>
+          <Return size={24} className="text-[#001C63]" />
+        </motion.button>
+
+        <h1 className="relative z-10 flex-1 text-center text-white text-2xl font-bold pr-6 drop-shadow-lg">
+          {restaurant.name}
+        </h1>
+
+        <ProfileButton className="relative z-10 text-black" />
       </motion.div>
 
-      {/* Pestañas */}
-      <div className="px-4">
-        <div className="flex gap-2 overflow-x-auto pb-3">
+      {/* Tabs */}
+      <div className="overflow-x-auto pb-3">
+        <div className="flex gap-2 justify-start px-4">
           <Button
             text="Productos"
             onClick={() => setTab('productos')}
             className={`whitespace-nowrap transition-all duration-300 font-medium ${
-              tab === 'productos' 
-                ? 'bg-[#001C63] text-white shadow-md' 
+              tab === 'productos'
+                ? 'bg-[#001C63] text-white shadow-md'
                 : 'bg-white text-[#001C63] hover:bg-white/80'
             }`}
           />
-          
+
           <Button
             text={`Carrito (${items.length})`}
             onClick={() => setTab('carrito')}
             className={`whitespace-nowrap transition-all duration-300 font-medium ${
-              tab === 'carrito' 
-                ? 'bg-[#001C63] text-white shadow-md' 
+              tab === 'carrito'
+                ? 'bg-[#001C63] text-white shadow-md'
                 : 'bg-white text-[#001C63] hover:bg-white/80'
             }`}
           />
-          
+
           <Button
             text="Pedidos"
             onClick={() => setTab('pedidos')}
             className={`whitespace-nowrap transition-all duration-300 font-medium ${
-              tab === 'pedidos' 
-                ? 'bg-[#001C63] text-white shadow-md' 
+              tab === 'pedidos'
+                ? 'bg-[#001C63] text-white shadow-md'
                 : 'bg-white text-[#001C63] hover:bg-white/80'
             }`}
           />
-          
+
           {isAdmin && (
             <>
               <Button
                 text="Inventario"
                 onClick={() => setTab('inventario')}
                 className={`whitespace-nowrap transition-all duration-300 font-medium ${
-                  tab === 'inventario' 
-                    ? 'bg-[#001C63] text-white shadow-md' 
+                  tab === 'inventario'
+                    ? 'bg-[#001C63] text-white shadow-md'
                     : 'bg-white text-[#001C63] hover:bg-white/80'
                 }`}
               />
-              
+
               <Button
                 text="Gestionar"
                 onClick={() => setTab('manage')}
                 className={`whitespace-nowrap transition-all duration-300 font-medium ${
-                  tab === 'manage' 
-                    ? 'bg-[#001C63] text-white shadow-md' 
+                  tab === 'manage'
+                    ? 'bg-[#001C63] text-white shadow-md'
                     : 'bg-white text-[#001C63] hover:bg-white/80'
                 }`}
               />
@@ -194,3 +196,5 @@ export default function RestaurantProducts() {
     </div>
   );
 }
+
+
