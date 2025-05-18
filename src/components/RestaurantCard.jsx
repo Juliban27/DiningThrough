@@ -1,15 +1,8 @@
-
 import React, { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 const API = import.meta.env.VITE_API_URL;
 
-/**
- * RestaurantCard
- *  • Si el doc trae `image` ⇒ se usa.
- *  • Si falla, intenta `${API}/restaurants/${_id}/imagen`.
- *  • Si ambos fallan ⇒ placeholder "Sin imagen".
- */
 export const RestaurantCard = ({
   id,
   _id,
@@ -19,12 +12,11 @@ export const RestaurantCard = ({
   hora_cierre,
   latitude,
   longitude,
-  image,           // ← URL que llega desde la BD
+  image,
 }) => {
   const navigate = useNavigate();
   const [imgError, setImgError] = useState(false);
 
-  /* ---------- abierto ahora ---------- */
   const isOpenNow = useMemo(() => {
     if (!hora_apertura || !hora_cierre) return false;
     const [oH, oM] = hora_apertura.split(':').map(Number);
@@ -37,28 +29,32 @@ export const RestaurantCard = ({
       : nowMin >= openMin || nowMin < closeMin;
   }, [hora_apertura, hora_cierre]);
 
-  /* ---------- imagen ---------- */
   const fallbackSrc = `${API}/restaurants/${_id}/imagen`;
   const imgSrc = !imgError && image ? image : fallbackSrc;
 
-  /* ---------- eventos ---------- */
-  const navigationId = restaurant_id || _id || id;
-  const handleClick = () => navigate(`/restaurants/${navigationId}`);
+  const navigationId =_id || id;
 
-  // Manejador para navegar al mapa y mostrar la ubicación del restaurante
+  // Sólo navega si está abierto
+  const handleClick = () => {
+    if (isOpenNow) {
+      navigate(`/restaurants/${navigationId}`);
+    }
+  };
+
   const handleLocationClick = (e) => {
-    e.stopPropagation(); // Evitar que el evento de clic se propague al botón principal
+    e.stopPropagation();
     navigate(`/mapsview/${navigationId}`);
   };
 
-  /* ---------- UI ---------- */
   return (
     <button
       type="button"
       onClick={handleClick}
-      className="w-full flex items-center gap-3 p-4 rounded-lg bg-white shadow-md active:scale-[0.97] transition"
+      disabled={!isOpenNow}
+      className={`w-full flex items-center gap-3 p-4 rounded-lg bg-white shadow-md active:scale-[0.97] transition
+        ${!isOpenNow ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
+      `}
     >
-      {/* Imagen */}
       <div className="shrink-0 h-20 w-20 rounded-md overflow-hidden bg-gray-200 flex items-center justify-center">
         {!imgError ? (
           <img
@@ -72,7 +68,6 @@ export const RestaurantCard = ({
         )}
       </div>
 
-      {/* Información */}
       <div className="flex flex-col text-left">
         <h3 className="text-base font-semibold leading-5">{name}</h3>
         <span className="text-xs text-gray-600 mt-1">
@@ -87,7 +82,6 @@ export const RestaurantCard = ({
         </span>
       </div>
 
-      {/* Enlace "Ubicación" (previene propagación al botón principal) */}
       <span
         onClick={handleLocationClick}
         className="text-xs ml-auto text-[#001C63] underline cursor-pointer"
