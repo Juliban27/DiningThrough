@@ -96,9 +96,6 @@ export default function ProductForm() {
                     onChange={e => setRestaurantIds(e.target.value)}
                     className="border-2 border-gray-300 rounded-md p-2" />
 
-                <input type="number" step="0.1" placeholder="Calificación" value={calification}
-                    onChange={e => setCalification(e.target.value)}
-                    className="border-2 border-gray-300 rounded-md p-2" />
 
                 <Button text={loading ? 'Guardando...' : 'Crear Producto'} type="submit"
                     disabled={loading} className="mt-4" />
