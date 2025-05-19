@@ -29,7 +29,7 @@ export default function OrderCard({ orderId, date, state, punto_venta }) {
 
   return (
     <div
-      onClick={() => navigate(`/orders/${orderId}`)}
+      onClick={() => navigate(`/bills/${orderId}`)}
       className="relative h-32 rounded-2xl overflow-hidden shadow-md cursor-pointer select-none"
     >
       {restaurant.image ? (
@@ -56,4 +56,5 @@ export default function OrderCard({ orderId, date, state, punto_venta }) {
     </div>
   );
 }
+
 

@@ -4,13 +4,6 @@ import OrderCard from '../../components/OrderCard';
 
 const API = import.meta.env.VITE_API_URL;
 
-/**
- * OrdersTab.jsx
- * Muestra dos secciones de órdenes:
- *  • Pedidos activos (pending, accepted, ready)
- *  • Historial de órdenes (rejected, claimed)
- * Recibe `restaurantId` para filtrar por este restaurante.
- */
 export default function OrdersTab({ restaurantId }) {
   const { user, loading: authLoading } = useAuth();
   const [orders, setOrders] = useState([]);

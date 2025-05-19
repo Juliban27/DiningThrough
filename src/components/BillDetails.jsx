@@ -1,15 +1,14 @@
-// -------------------------------------------------------------------
-// BillDetails.jsx – Vista ampliada de la factura
-// -------------------------------------------------------------------
+// src/components/BillDetails.jsx
+
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import Return from "../assets/Return";
-import Button from "../components/Button"; // reutilizamos tu botón estilizado
+import Button from "../components/Button";
 
 const API = import.meta.env.VITE_API_URL;
 
 export default function BillDetails() {
-  const { id } = useParams();          // id de la factura
+  const { id } = useParams();
   const navigate = useNavigate();
 
   const [bill, setBill] = useState(null);
@@ -20,7 +19,8 @@ export default function BillDetails() {
     (async () => {
       try {
         setLoading(true);
-        const res = await fetch(`${API}/bills/${id}`);
+        // <-- aquí cambiamos el endpoint a /orders/:id
+        const res = await fetch(`${API}/orders/${id}`);
         if (!res.ok) throw new Error("No se encontró la factura");
         const data = await res.json();
         setBill(data);
@@ -51,7 +51,7 @@ export default function BillDetails() {
     );
   }
 
-  /* ───── Formateos útiles ───── */
+  // ───── Formateos útiles ─────
   const fecha = new Date(bill.date);
   const fechaTexto = fecha.toLocaleDateString("es-CO", {
     day: "2-digit",
@@ -63,7 +63,9 @@ export default function BillDetails() {
     minute: "2-digit",
   });
 
-  const total = bill.total ?? bill.products?.reduce((acc, p) => acc + p.price * (p.quantity || 1), 0);
+  const total =
+    bill.total ??
+    bill.products?.reduce((acc, p) => acc + p.price * (p.quantity || 1), 0);
 
   return (
     <div className="bg-[#E0EDFF] min-h-screen flex flex-col">
@@ -76,25 +78,36 @@ export default function BillDetails() {
         >
           <Return size={24} className="text-[#001C63]" />
         </button>
-        <h1 className="text-[#001C63] text-xl font-medium flex-1 text-center pr-6">Detalle de la factura</h1>
+        <h1 className="text-[#001C63] text-xl font-medium flex-1 text-center pr-6">
+          Detalle de la factura
+        </h1>
       </div>
 
       {/* Contenido */}
       <div className="flex-1 bg-white rounded-t-[2rem] p-6 space-y-6">
         {/* Info general */}
         <div className="space-y-1">
-          <p className="text-[#001C63] font-medium">Fecha: <span className="font-normal">{fechaTexto}</span></p>
-          <p className="text-[#001C63] font-medium">Hora: <span className="font-normal">{horaTexto}</span></p>
+          <p className="text-[#001C63] font-medium">
+            Fecha: <span className="font-normal">{fechaTexto}</span>
+          </p>
+          <p className="text-[#001C63] font-medium">
+            Hora: <span className="font-normal">{horaTexto}</span>
+          </p>
         </div>
 
         {/* Productos */}
         <div>
-          <h2 className="text-lg font-semibold text-[#001C63] mb-2">Productos</h2>
+          <h2 className="text-lg font-semibold text-[#001C63] mb-2">
+            Productos
+          </h2>
           {bill.products?.length ? (
             <ul className="space-y-2 max-h-72 overflow-y-auto pr-1">
               {bill.products.map((p, idx) => (
                 <li key={idx} className="flex justify-between text-sm">
-                  <span>{p.name}{p.quantity ? ` ×${p.quantity}` : ""}</span>
+                  <span>
+                    {p.name}
+                    {p.quantity ? ` ×${p.quantity}` : ""}
+                  </span>
                   <span>${(p.price * (p.quantity || 1)).toFixed(2)}</span>
                 </li>
               ))}
@@ -107,7 +120,9 @@ export default function BillDetails() {
         {/* Total */}
         <div className="flex justify-between items-center pt-4 border-t">
           <span className="text-lg font-bold text-[#001C63]">Total</span>
-          <span className="text-lg font-bold text-[#001C63]">${Number(total).toFixed(2)}</span>
+          <span className="text-lg font-bold text-[#001C63]">
+            ${Number(total).toFixed(2)}
+          </span>
         </div>
       </div>
     </div>

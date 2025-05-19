@@ -3,12 +3,15 @@ import Button from '../components/Button';
 import axios from 'axios';
 const API = import.meta.env.VITE_API_URL;
 
-export default function RestaurantForm() {
+export default function RestaurantRegister() {
   const [restaurantId, setRestaurantId] = useState('');
   const [name, setName] = useState('');
   const [location, setLocation] = useState('');
   const [horaApertura, setHoraApertura] = useState('');
   const [horaCierre, setHoraCierre] = useState('');
+  const [latitude, setLatitude] = useState('');
+  const [longitude, setLongitude] = useState('');
+  const [image, setImage] = useState('');
 
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -27,6 +30,9 @@ export default function RestaurantForm() {
         location,
         hora_apertura: horaApertura,
         hora_cierre: horaCierre,
+        latitude: latitude ? Number(latitude) : undefined,
+        longitude: longitude ? Number(longitude) : undefined,
+        image: image || undefined,
       };
 
       const response = await axios.post(
@@ -35,11 +41,15 @@ export default function RestaurantForm() {
       );
 
       setSuccess(response.data.message || '¡Restaurante creado correctamente!');
+      // Limpiar campos
       setRestaurantId('');
       setName('');
       setLocation('');
       setHoraApertura('');
       setHoraCierre('');
+      setLatitude('');
+      setLongitude('');
+      setImage('');
     } catch (err) {
       setError(
         err.response?.data?.error || 'Error al crear el restaurante.'
@@ -104,6 +114,33 @@ export default function RestaurantForm() {
           required
         />
 
+        {/* Nuevos campos */}
+        <input
+          type="number"
+          step="any"
+          placeholder="Latitud (ejemplo: 4.7110)"
+          value={latitude}
+          onChange={e => setLatitude(e.target.value)}
+          className="border-2 border-gray-300 rounded-md p-2"
+        />
+
+        <input
+          type="number"
+          step="any"
+          placeholder="Longitud (ejemplo: -74.0721)"
+          value={longitude}
+          onChange={e => setLongitude(e.target.value)}
+          className="border-2 border-gray-300 rounded-md p-2"
+        />
+
+        <input
+          type="url"
+          placeholder="URL imagen"
+          value={image}
+          onChange={e => setImage(e.target.value)}
+          className="border-2 border-gray-300 rounded-md p-2"
+        />
+
         <Button
           text={loading ? 'Guardando...' : 'Crear Restaurante'}
           type="submit"
@@ -114,3 +151,4 @@ export default function RestaurantForm() {
     </div>
   );
 }
+

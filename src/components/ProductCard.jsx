@@ -16,6 +16,8 @@ export default function ProductCard({
   const [loadingRatings, setLoadingRatings] = useState(true);
   const [isRatingOpen, setIsRatingOpen] = useState(false);
 
+  const isOutOfStock = product.stock === 0;
+
   // Traer promedio de calificaciones cuando cambia el producto
   useEffect(() => {
     if (!product?._id) return;
@@ -45,7 +47,11 @@ export default function ProductCard({
       : `${API}/products/${product._id}/imagen`;
 
   return (
-    <div className="flex flex-col gap-2 p-4 rounded-lg bg-white shadow-md border border-gray-100">
+    <div
+      className={`flex flex-col gap-2 p-4 rounded-lg bg-white shadow-md border border-gray-100
+        ${isOutOfStock ? 'opacity-50' : 'opacity-100'}
+      `}
+    >
       <div className="flex items-center gap-3">
         <div className="shrink-0 h-20 w-20 rounded-md overflow-hidden bg-gray-100 flex items-center justify-center">
           {!imgError ? (
@@ -79,30 +85,36 @@ export default function ProductCard({
         </div>
 
         {showAddButton && onAddToCart && (
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onAddToCart(product);
-            }}
-            className="ml-2 p-2 bg-[#001C63] text-white rounded-full hover:bg-blue-800 active:scale-95 transition"
-            aria-label="Añadir al carrito"
-            type="button"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-5 w-5"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
+          isOutOfStock ? (
+            <div className="ml-2 px-4 py-2 rounded-full border border-red-600 text-red-600 font-semibold select-none">
+              Out of Stock
+            </div>
+          ) : (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onAddToCart(product);
+              }}
+              className="ml-2 p-2 bg-[#001C63] text-white rounded-full hover:bg-blue-800 active:scale-95 transition"
+              aria-label="Añadir al carrito"
+              type="button"
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-              />
-            </svg>
-          </button>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-5 w-5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                />
+              </svg>
+            </button>
+          )
         )}
 
         {/* Botón estrella para abrir modal de calificación */}
@@ -120,7 +132,6 @@ export default function ProductCard({
             }}
           />
         )}
-
       </div>
     </div>
   );

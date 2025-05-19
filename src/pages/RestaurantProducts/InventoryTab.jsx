@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import useRestaurant from '../../hooks/useRestaurant';
 import InventaryCard from '../../components/InventaryCard';
+import { useNavigate } from 'react-router-dom';
 
 /**
  * InventoryTab.jsx
@@ -10,6 +11,7 @@ import InventaryCard from '../../components/InventaryCard';
 
 export default function InventoryTab() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const {
     restaurant,
     products,
@@ -200,6 +202,16 @@ export default function InventoryTab() {
           />
         ))}
       </div>
+      <button
+        onClick={() => navigate('/productform')}
+        className="fixed bottom-6 right-6 bg-blue-600 hover:bg-blue-700 text-white rounded-full p-4 shadow-lg
+                   flex items-center justify-center text-xl font-semibold transition-transform
+                   active:scale-95 focus:outline-none focus:ring-2 focus:ring-blue-400"
+        aria-label="Agregar producto"
+        title="Agregar producto"
+      >
+        +
+      </button>
     </div>
   );
 }

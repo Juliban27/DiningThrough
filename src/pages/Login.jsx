@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
 import Button from '../components/Button';
@@ -13,6 +13,7 @@ const Login = () => {
     const navigate = useNavigate();
     const { login } = useAuth();
 
+    
     const handleLogin = async (e) => {
         e.preventDefault();
         setLoading(true);
@@ -37,6 +38,22 @@ const Login = () => {
             setLoading(false);
         }
     };
+
+        useEffect(() => {
+        const handleKeyDown = (e) => {
+            if (e.key === 'Enter') {
+                handleLogin(e);
+            }
+        };
+
+        // Agregar el event listener cuando el componente se monta
+        document.addEventListener('keydown', handleKeyDown);
+
+        // Limpiar el event listener cuando el componente se desmonta
+        return () => {
+            document.removeEventListener('keydown', handleKeyDown);
+        };
+    }, [email, password]); 
 
     return (
         <div className="font-cabinet-regular relative min-h-screen bg-white">

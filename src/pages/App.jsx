@@ -12,6 +12,7 @@ import ProductForm from './ProductForm';
 import RestaurantProducts from './RestaurantProducts';
 import BillDetails from '../components/BillDetails';
 import MapView from "../pages/MapView";
+import RestaurantRegister from './RestaurantRegister'; 
 import { CartProvider } from '../context/CartContext';
 
 import { OrderDetailsWrapper } from '../components/OrderDetailsWrapper';  // IMPORTA el wrapper
@@ -101,11 +102,12 @@ function AppRoutes() {
           <Route
             path="/orders/:id"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute requireAdmin>
                 <OrderDetailsWrapper />
               </ProtectedRoute>
             }
           />
+
 
           {/* Mapa */}
           <Route
@@ -139,6 +141,16 @@ function AppRoutes() {
             element={
               <ProtectedRoute>
                 <MapView />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Crear nuevo restaurante */}
+          <Route
+            path="/RestaurantRegister"
+            element={
+              <ProtectedRoute requireAdmin>
+                <RestaurantRegister />
               </ProtectedRoute>
             }
           />

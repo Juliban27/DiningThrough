@@ -22,7 +22,7 @@ export function AuthProvider({ children }) {
                     // Configurar el token en axios para todas las solicitudes futuras
                     axios.defaults.headers.common['Authorization'] = `Bearer ${storedToken}`;
                     
-                    console.log('🔑 Sesión restaurada:', { user: storedUser });
+                    console.log('Sesión restaurada:');
                 } catch (error) {
                     console.error('Error al parsear datos de usuario:', error);
                     localStorage.removeItem('myAppUser');
@@ -36,7 +36,7 @@ export function AuthProvider({ children }) {
     }, []);
 
     const login = ({ token, user }) => {
-        console.log('🔐 Login exitoso:', { token, user });
+        console.log('Login exitoso:');
         
         if (!token || !user) {
             console.error('Datos de login inválidos', { token, user });
@@ -56,7 +56,7 @@ export function AuthProvider({ children }) {
     };
 
     const logout = () => {
-        console.log('🚪 Cerrando sesión');
+        console.log('Cerrando sesión');
         localStorage.removeItem('myAppToken');
         localStorage.removeItem('myAppUser');
         delete axios.defaults.headers.common['Authorization'];

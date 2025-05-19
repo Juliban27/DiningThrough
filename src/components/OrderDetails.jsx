@@ -1,13 +1,37 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Tick from '../assets/Tick';	
 import Cross from '../assets/Cross';
-import Return from '../assets/Return';   // Importa el icono Return
+import Return from '../assets/Return';
 import Button from './Button';
 
 export const OrderDetails = ({ order, onUpdateStatus }) => {
   const navigate = useNavigate();
-  const { _id, client_name, products, state, punto_venta } = order;
+
+  const { _id, client_id, client_name, products, state, punto_venta } = order;
+  const [userName, setUserName] = useState('');
+
+  useEffect(() => {
+    if (!client_id) {
+      console.log('No hay client_id en la orden');
+      setUserName('Desconocido');
+      return;
+    }
+
+    const fetchUser = async () => {
+      try {
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/users/${client_id}`);
+        if (!res.ok) throw new Error('Error al obtener usuario');
+        const user = await res.json();
+        setUserName(user.name || 'Sin nombre');
+      } catch (error) {
+        console.error('Fetch error:', error);
+        setUserName('Desconocido');
+      }
+    };
+
+    fetchUser();
+  }, [client_id]);
 
   const handleAccept = () => {
     if (state === 'pending') onUpdateStatus(_id, 'acepted');
@@ -25,9 +49,13 @@ export const OrderDetails = ({ order, onUpdateStatus }) => {
     </li>
   ));
 
-  // Función para volver a la pestaña gestionar en RestaurantProducts
+  // Volver atrás sin duplicar, o ir al restaurante si no hay historial
   const goBackToManage = () => {
-    navigate(`/restaurants/${punto_venta}?tab=manage`);
+    if (window.history.length > 2) {
+      navigate(-1);
+    } else {
+      navigate(`/restaurants/${punto_venta}`, { replace: true });
+    }
   };
 
   return (
@@ -42,7 +70,7 @@ export const OrderDetails = ({ order, onUpdateStatus }) => {
 
       <h2 className="text-2xl font-semibold mb-4">Detalles del Pedido #{_id}</h2>
 
-      <p><strong>Cliente:</strong> {client_name || 'Desconocido'}</p>
+      <p><strong>Cliente:</strong> {userName || client_name || 'Desconocido'}</p>
       <p className="mb-4"><strong>Estado:</strong> <span className="capitalize">{state}</span></p>
 
       <h3 className="font-semibold mb-2">Productos:</h3>
@@ -75,3 +103,9 @@ export const OrderDetails = ({ order, onUpdateStatus }) => {
     </div>
   );
 };
+
+
+
+
+
+
