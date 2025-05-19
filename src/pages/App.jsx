@@ -15,7 +15,7 @@ import MapView from "../pages/MapView";
 import RestaurantRegister from './RestaurantRegister'; 
 import { CartProvider } from '../context/CartContext';
 
-import { OrderDetailsWrapper } from '../components/OrderDetailsWrapper';  // IMPORTA el wrapper
+import { OrderDetailsWrapper } from '../components/OrderDetailsWrapper'; 
 
 /* ─── Pantalla de carga ─── */
 const LoadingScreen = () => (

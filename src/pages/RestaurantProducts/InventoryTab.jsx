@@ -4,11 +4,6 @@ import useRestaurant from '../../hooks/useRestaurant';
 import InventaryCard from '../../components/InventaryCard';
 import { useNavigate } from 'react-router-dom';
 
-/**
- * InventoryTab.jsx
- * Muestra los productos en inventario para administradores.
- */
-
 export default function InventoryTab() {
   const { id } = useParams();
   const navigate = useNavigate();
