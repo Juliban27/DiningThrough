@@ -3,11 +3,6 @@ import { useParams } from 'react-router-dom';
 import useRestaurant from '../../hooks/useRestaurant';
 import InventaryCard from '../../components/InventaryCard';
 
-/**
- * InventoryTab.jsx
- * Muestra los productos en inventario para administradores.
- */
-
 export default function InventoryTab() {
   const { id } = useParams();
   const {

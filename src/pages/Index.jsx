@@ -1,5 +1,3 @@
-// src/pages/Index.jsx
-
 import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import Magnifier from '../assets/Magnifier';
@@ -80,7 +78,7 @@ const Index = () => {
         </div>
       </motion.div>
 
-      {/* Lista de restaurantes, solapando el header */}
+      {/* Lista de restaurantes*/}
       <motion.div 
         className="bg-white flex-1 rounded-t-[2rem] -mt-8 overflow-y-auto px-4 pt-6 shadow-[0_-8px_30px_-12px_rgba(0,0,0,0.1)] relative"
         initial={{ y: 100 }}
